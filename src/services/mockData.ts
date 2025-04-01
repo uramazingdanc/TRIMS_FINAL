@@ -1,4 +1,3 @@
-
 import { User, UserRole } from '@/types/auth';
 import { Tenant, Room, Payment, MaintenanceRequest } from '@/types/tenant';
 import { v4 as uuidv4 } from 'uuid';
@@ -159,7 +158,7 @@ export const payments: Payment[] = [
     date: '',
     dueDate: '2023-05-05',
     status: 'overdue',
-    method: 'pending'
+    method: 'other'
   }
 ];
 
