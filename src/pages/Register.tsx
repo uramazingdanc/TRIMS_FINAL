@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/Spinner';
+import { v4 as uuidv4 } from 'uuid';
+import { tenants, rooms } from '@/services/mockData';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -21,6 +23,9 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    phone: '',
+    address: '',
+    emergencyContact: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -33,11 +38,53 @@ const Register = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const createTenantProfile = (userId: string, userData: typeof formData) => {
+    // Find an available room
+    const availableRoom = rooms.find(room => room.status === 'available');
+    
+    // Create a new tenant profile
+    const newTenant = {
+      id: uuidv4(),
+      name: userData.name,
+      email: userData.email,
+      phone: userData.phone || '(Not provided)',
+      address: userData.address || '(Not provided)',
+      emergencyContact: userData.emergencyContact || '(Not provided)',
+      leaseStartDate: new Date().toISOString().split('T')[0], // Today's date as YYYY-MM-DD
+      leaseEndDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0], // 1 year from now
+      roomId: availableRoom?.id || '', // Assign a room if available
+      status: 'active',
+      paymentStatus: 'pending',
+      balance: availableRoom?.pricePerMonth || 0,
+      userId: userId
+    };
+    
+    // Add to tenants array
+    tenants.push(newTenant);
+    
+    // Update room status if a room was assigned
+    if (availableRoom) {
+      const roomIndex = rooms.findIndex(room => room.id === availableRoom.id);
+      if (roomIndex !== -1) {
+        rooms[roomIndex].status = 'occupied';
+        rooms[roomIndex].occupants += 1;
+      }
+    }
+    
+    console.log('New tenant created:', newTenant);
+    return newTenant;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
-    // Simple validation
+    // Validation
+    if (!formData.phone) {
+      setError('Phone number is required');
+      return;
+    }
+    
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -45,7 +92,13 @@ const Register = () => {
     
     try {
       setIsSubmitting(true);
-      await register(formData);
+      // Register the user
+      const user = await register(formData);
+      
+      // Create tenant profile
+      createTenantProfile(user.id, formData);
+      
+      // Redirect to tenant dashboard
       navigate('/tenant/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to register');
@@ -95,6 +148,44 @@ const Register = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
+                disabled={isSubmitting}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input 
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="09123456789"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                disabled={isSubmitting}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="address">Home Address</Label>
+              <Input 
+                id="address"
+                name="address"
+                placeholder="123 Main St, City"
+                value={formData.address}
+                onChange={handleChange}
+                disabled={isSubmitting}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="emergencyContact">Emergency Contact</Label>
+              <Input 
+                id="emergencyContact"
+                name="emergencyContact"
+                placeholder="Contact Name & Number"
+                value={formData.emergencyContact}
+                onChange={handleChange}
                 disabled={isSubmitting}
               />
             </div>

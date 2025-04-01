@@ -13,6 +13,9 @@ import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from "./pages/admin/Dashboard";
+import TenantsPage from "./pages/admin/Tenants";
+import RoomsPage from "./pages/admin/Rooms";
+import MaintenanceRequestsPage from "./pages/admin/Maintenance";
 import TenantDashboard from "./pages/tenant/Dashboard";
 import NotFound from "./pages/NotFound";
 
@@ -45,7 +48,11 @@ const App = () => {
               }>
                 <Route index element={<Navigate to="/admin/dashboard" />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
-                {/* Add other admin routes here */}
+                <Route path="tenants" element={<TenantsPage />} />
+                <Route path="rooms" element={<RoomsPage />} />
+                <Route path="maintenance" element={<MaintenanceRequestsPage />} />
+                {/* Add payments route later */}
+                <Route path="payments" element={<div className="container mx-auto py-6"><h1 className="text-3xl font-bold">Payments</h1><p className="mt-4">Payment management coming soon.</p></div>} />
               </Route>
               
               {/* Protected Tenant Routes - Use TenantLayout directly under the SiteHeader */}
