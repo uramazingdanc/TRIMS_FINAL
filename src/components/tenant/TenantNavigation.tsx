@@ -34,7 +34,7 @@ export function TenantNavigation() {
   const location = useLocation();
   
   return (
-    <div className="w-full border-b bg-white sticky top-16 z-40 animate-fade-in">
+    <div className="w-full bg-white border-b animate-fade-in">
       <nav className="container mx-auto px-4">
         <ul className="flex space-x-2 md:space-x-8">
           {menuItems.map((item) => {

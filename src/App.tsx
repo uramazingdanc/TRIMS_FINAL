@@ -35,37 +35,36 @@ const App = () => {
                 <Route index element={<LandingPage />} />
                 <Route path="login" element={<Login />} />
                 <Route path="register" element={<Register />} />
-                
-                {/* Protected Admin Routes */}
-                <Route path="admin">
-                  <Route path="dashboard" element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  } />
-                  {/* Add other admin routes here */}
-                </Route>
-                
-                {/* Protected Tenant Routes */}
-                <Route path="tenant" element={
-                  <ProtectedRoute allowedRoles={['tenant']}>
-                    <Layout />
-                  </ProtectedRoute>
-                }>
+              </Route>
+              
+              {/* Protected Admin Routes */}
+              <Route path="admin" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <Layout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<Navigate to="/admin/dashboard" />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                {/* Add other admin routes here */}
+              </Route>
+              
+              {/* Protected Tenant Routes - Use TenantLayout directly under the SiteHeader */}
+              <Route path="tenant" element={
+                <ProtectedRoute allowedRoles={['tenant']}>
+                  <Layout />
+                </ProtectedRoute>
+              }>
+                <Route path="*" element={<TenantLayout />}>
                   <Route index element={<Navigate to="/tenant/dashboard" />} />
                   <Route path="dashboard" element={<TenantDashboard />} />
-                  {/* Placeholder routes for the navigation system */}
-                  <Route path="payments" element={<div className="container mx-auto py-8"><h1 className="text-2xl font-bold">Payments Page</h1><p>Coming soon...</p></div>} />
-                  <Route path="maintenance" element={<div className="container mx-auto py-8"><h1 className="text-2xl font-bold">Maintenance Page</h1><p>Coming soon...</p></div>} />
-                  <Route path="profile" element={<div className="container mx-auto py-8"><h1 className="text-2xl font-bold">Profile Page</h1><p>Coming soon...</p></div>} />
+                  <Route path="payments" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Payments</h1><p>Your payment information will appear here. No pending payments at the moment.</p></div>} />
+                  <Route path="maintenance" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Maintenance</h1><p>Submit and track maintenance requests here.</p></div>} />
+                  <Route path="profile" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Profile</h1><p>Your profile information and settings.</p></div>} />
                 </Route>
-                
-                {/* Redirect for authenticated users */}
-                <Route path="/" element={<Navigate to="/login" />} />
-                
-                {/* 404 - Not Found */}
-                <Route path="*" element={<NotFound />} />
               </Route>
+              
+              {/* 404 - Not Found */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
