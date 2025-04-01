@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,8 +14,9 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/Spinner';
 import { v4 as uuidv4 } from 'uuid';
-import { tenants, rooms } from '@/services/mockData';
+import { tenants, rooms, addDataItem, updateDataItem } from '@/services/mockData';
 import { Tenant } from '@/types/tenant';
+import { useToast } from '@/components/ui/use-toast';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -33,47 +33,70 @@ const Register = () => {
   
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const createTenantProfile = (userId: string, userData: typeof formData) => {
-    // Find an available room
-    const availableRoom = rooms.find(room => room.status === 'available');
-    
-    // Create a new tenant profile
-    const newTenant: Tenant = {
-      id: uuidv4(),
-      name: userData.name,
-      email: userData.email,
-      phone: userData.phone || '(Not provided)',
-      address: userData.address || '(Not provided)',
-      emergencyContact: userData.emergencyContact || '(Not provided)',
-      leaseStartDate: new Date().toISOString().split('T')[0], // Today's date as YYYY-MM-DD
-      leaseEndDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0], // 1 year from now
-      roomId: availableRoom?.id || '', // Assign a room if available
-      status: 'active', // Explicitly set as one of the allowed values
-      paymentStatus: 'pending', // Explicitly set as one of the allowed values
-      balance: availableRoom?.pricePerMonth || 0,
-      userId: userId
-    };
-    
-    // Add to tenants array
-    tenants.push(newTenant);
-    
-    // Update room status if a room was assigned
-    if (availableRoom) {
-      const roomIndex = rooms.findIndex(room => room.id === availableRoom.id);
-      if (roomIndex !== -1) {
-        rooms[roomIndex].status = 'occupied';
-        rooms[roomIndex].occupants += 1;
+  const createTenantProfile = async (userId: string, userData: typeof formData) => {
+    try {
+      // Find an available room
+      const availableRoom = rooms.find(room => room.status === 'available');
+      
+      if (!availableRoom) {
+        toast({
+          title: "No rooms available",
+          description: "There are no available rooms at the moment. Please contact administration.",
+          variant: "destructive"
+        });
+        return null;
       }
+      
+      // Create a new tenant profile
+      const newTenant: Tenant = {
+        id: uuidv4(),
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone || '(Not provided)',
+        address: userData.address || '(Not provided)',
+        emergencyContact: userData.emergencyContact || '(Not provided)',
+        leaseStartDate: new Date().toISOString().split('T')[0], // Today's date as YYYY-MM-DD
+        leaseEndDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0], // 1 year from now
+        roomId: availableRoom.id,
+        status: 'active', // Explicitly set as one of the allowed values
+        paymentStatus: 'pending', // Explicitly set as one of the allowed values
+        balance: availableRoom.pricePerMonth || 0,
+        userId: userId
+      };
+      
+      // Add to tenants array using the data service
+      const createdTenant = await addDataItem<Tenant>(tenants, newTenant);
+      
+      // Update room status
+      await updateDataItem(rooms, availableRoom.id, {
+        status: 'occupied',
+        occupants: availableRoom.occupants + 1
+      });
+      
+      console.log('New tenant created:', createdTenant);
+      
+      toast({
+        title: "Tenant profile created",
+        description: `Room ${availableRoom.number} has been assigned to you.`,
+      });
+      
+      return createdTenant;
+    } catch (error) {
+      console.error("Error creating tenant profile:", error);
+      toast({
+        title: "Error creating tenant profile",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive"
+      });
+      return null;
     }
-    
-    console.log('New tenant created:', newTenant);
-    return newTenant;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -106,7 +129,11 @@ const Register = () => {
       }
       
       // Create tenant profile
-      createTenantProfile(user.id, formData);
+      const tenant = await createTenantProfile(user.id, formData);
+      
+      if (!tenant) {
+        throw new Error('Failed to create tenant profile.');
+      }
       
       // Redirect to tenant dashboard
       navigate('/tenant/dashboard');

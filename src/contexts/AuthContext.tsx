@@ -22,12 +22,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check if user is already logged in
-    const user = getCurrentUser();
-    setState({
-      user,
-      isAuthenticated: !!user,
-      isLoading: false,
-    });
+    const loadCurrentUser = async () => {
+      try {
+        const user = getCurrentUser();
+        setState({
+          user,
+          isAuthenticated: !!user,
+          isLoading: false,
+        });
+      } catch (error) {
+        console.error("Error loading current user:", error);
+        setState({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+      }
+    };
+    
+    loadCurrentUser();
   }, []);
 
   const handleLogin = async (credentials: LoginCredentials) => {

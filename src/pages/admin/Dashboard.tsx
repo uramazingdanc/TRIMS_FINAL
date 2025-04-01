@@ -29,8 +29,9 @@ import {
   Wrench,
   ArrowRight
 } from 'lucide-react';
-import { tenants, rooms, payments, maintenanceRequests } from '@/services/mockData';
+import { tenants, rooms, payments, maintenanceRequests, getAllDataItems } from '@/services/mockData';
 import { Link } from 'react-router-dom';
+import { Tenant, Room, Payment, MaintenanceRequest } from '@/types/tenant';
 
 // Colors for the pie chart
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
@@ -44,50 +45,94 @@ const AdminDashboard = () => {
   });
 
   const [occupancyData, setOccupancyData] = useState<{ name: string; value: number }[]>([]);
-  
   const [revenueData, setRevenueData] = useState<{ month: string; amount: number }[]>([]);
+  const [tenantsList, setTenantsList] = useState<Tenant[]>([]);
+  const [roomsList, setRoomsList] = useState<Room[]>([]);
+  const [paymentsList, setPaymentsList] = useState<Payment[]>([]);
+  const [maintenanceList, setMaintenanceList] = useState<MaintenanceRequest[]>([]);
 
   useEffect(() => {
-    // Calculate dashboard statistics
-    const totalTenants = tenants.length;
-    
-    const activeRooms = rooms.filter(room => room.status === 'occupied').length;
-    
-    const totalRevenue = payments
-      .filter(payment => payment.status === 'paid')
-      .reduce((sum, payment) => sum + payment.amount, 0);
-    
-    const pendingMaintenance = maintenanceRequests
-      .filter(req => req.status === 'open' || req.status === 'in progress')
-      .length;
+    // Fetch real data from our data service
+    const fetchData = async () => {
+      try {
+        const fetchedTenants = await getAllDataItems<Tenant>(tenants);
+        const fetchedRooms = await getAllDataItems<Room>(rooms);
+        const fetchedPayments = await getAllDataItems<Payment>(payments);
+        const fetchedMaintenance = await getAllDataItems<MaintenanceRequest>(maintenanceRequests);
+        
+        setTenantsList(fetchedTenants);
+        setRoomsList(fetchedRooms);
+        setPaymentsList(fetchedPayments);
+        setMaintenanceList(fetchedMaintenance);
+        
+        // Calculate dashboard statistics with fetched data
+        const totalTenants = fetchedTenants.length;
+        
+        const activeRooms = fetchedRooms.filter(room => room.status === 'occupied').length;
+        
+        const totalRevenue = fetchedPayments
+          .filter(payment => payment.status === 'paid')
+          .reduce((sum, payment) => sum + payment.amount, 0);
+        
+        const pendingMaintenance = fetchedMaintenance
+          .filter(req => req.status === 'open' || req.status === 'in progress')
+          .length;
 
-    setStats({
-      totalTenants,
-      activeRooms,
-      totalRevenue,
-      pendingMaintenance
-    });
+        setStats({
+          totalTenants,
+          activeRooms,
+          totalRevenue,
+          pendingMaintenance
+        });
 
-    // Prepare occupancy data for pie chart
-    const occupied = rooms.filter(room => room.status === 'occupied').length;
-    const available = rooms.filter(room => room.status === 'available').length;
-    const maintenance = rooms.filter(room => room.status === 'maintenance').length;
-    
-    setOccupancyData([
-      { name: 'Occupied', value: occupied },
-      { name: 'Available', value: available },
-      { name: 'Maintenance', value: maintenance },
-    ]);
+        // Prepare occupancy data for pie chart
+        const occupied = fetchedRooms.filter(room => room.status === 'occupied').length;
+        const available = fetchedRooms.filter(room => room.status === 'available').length;
+        const maintenance = fetchedRooms.filter(room => room.status === 'maintenance').length;
+        
+        setOccupancyData([
+          { name: 'Occupied', value: occupied },
+          { name: 'Available', value: available },
+          { name: 'Maintenance', value: maintenance },
+        ]);
 
-    // Prepare revenue data for bar chart (mocked data for last 6 months)
-    setRevenueData([
-      { month: 'Dec', amount: 15000 },
-      { month: 'Jan', amount: 18000 },
-      { month: 'Feb', amount: 14500 },
-      { month: 'Mar', amount: 17000 },
-      { month: 'Apr', amount: 21000 },
-      { month: 'May', amount: 19500 },
-    ]);
+        // Calculate revenue data from actual payments (last 6 months)
+        const today = new Date();
+        const lastSixMonths: { [key: string]: number } = {};
+        
+        // Initialize the last 6 months with 0
+        for (let i = 5; i >= 0; i--) {
+          const month = new Date(today.getFullYear(), today.getMonth() - i, 1);
+          const monthName = month.toLocaleString('default', { month: 'short' });
+          lastSixMonths[monthName] = 0;
+        }
+        
+        // Sum up payments by month
+        fetchedPayments
+          .filter(payment => payment.status === 'paid' && payment.date)
+          .forEach(payment => {
+            const paymentDate = new Date(payment.date);
+            const monthName = paymentDate.toLocaleString('default', { month: 'short' });
+            
+            // Only count payments from the last 6 months
+            if (lastSixMonths.hasOwnProperty(monthName)) {
+              lastSixMonths[monthName] += payment.amount;
+            }
+          });
+        
+        // Convert to array format for the chart
+        const revenueChartData = Object.entries(lastSixMonths).map(([month, amount]) => ({
+          month,
+          amount
+        }));
+        
+        setRevenueData(revenueChartData);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
@@ -230,7 +275,7 @@ const AdminDashboard = () => {
 
       {/* Recent Activities and Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Recent Activities */}
+        {/* Recent Activities - Now showing real tenant activity */}
         <Card>
           <CardHeader>
             <CardTitle>Recent Activities</CardTitle>
@@ -240,26 +285,52 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="border-l-4 border-blue-500 pl-4 py-2">
-                <p className="font-medium">New tenant registered</p>
-                <p className="text-sm text-muted-foreground">Jane Smith registered as a new tenant.</p>
-                <p className="text-xs text-muted-foreground">Today, 9:32 AM</p>
-              </div>
-              <div className="border-l-4 border-green-500 pl-4 py-2">
-                <p className="font-medium">Payment received</p>
-                <p className="text-sm text-muted-foreground">John Doe made a payment of ₱8,000.</p>
-                <p className="text-xs text-muted-foreground">Yesterday, 3:15 PM</p>
-              </div>
-              <div className="border-l-4 border-amber-500 pl-4 py-2">
-                <p className="font-medium">Maintenance request updated</p>
-                <p className="text-sm text-muted-foreground">AC repair request for Room 202 marked as in-progress.</p>
-                <p className="text-xs text-muted-foreground">Yesterday, 10:45 AM</p>
-              </div>
-              <div className="border-l-4 border-purple-500 pl-4 py-2">
-                <p className="font-medium">Room status changed</p>
-                <p className="text-sm text-muted-foreground">Room 103 status changed from maintenance to available.</p>
-                <p className="text-xs text-muted-foreground">May 15, 2:20 PM</p>
-              </div>
+              {tenantsList.length > 0 ? (
+                <>
+                  <div className="border-l-4 border-blue-500 pl-4 py-2">
+                    <p className="font-medium">New tenant registered</p>
+                    <p className="text-sm text-muted-foreground">
+                      {tenantsList[tenantsList.length - 1].name} registered as a new tenant.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(tenantsList[tenantsList.length - 1].leaseStartDate).toLocaleDateString()} 
+                    </p>
+                  </div>
+                  
+                  {paymentsList.length > 0 && (
+                    <div className="border-l-4 border-green-500 pl-4 py-2">
+                      <p className="font-medium">Payment received</p>
+                      <p className="text-sm text-muted-foreground">
+                        {tenantsList.find(t => t.id === paymentsList[paymentsList.length - 1].tenantId)?.name || 'A tenant'} 
+                        made a payment of ₱{paymentsList[paymentsList.length - 1].amount.toLocaleString()}.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {paymentsList[paymentsList.length - 1].date ? 
+                          new Date(paymentsList[paymentsList.length - 1].date).toLocaleDateString() : 
+                          'Recently'}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {maintenanceList.length > 0 && (
+                    <div className="border-l-4 border-amber-500 pl-4 py-2">
+                      <p className="font-medium">Maintenance request updated</p>
+                      <p className="text-sm text-muted-foreground">
+                        {maintenanceList[maintenanceList.length - 1].title} for Room 
+                        {roomsList.find(r => r.id === maintenanceList[maintenanceList.length - 1].roomId)?.number || ''} 
+                        marked as {maintenanceList[maintenanceList.length - 1].status}.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(maintenanceList[maintenanceList.length - 1].dateSubmitted).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  No recent activities to display.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
