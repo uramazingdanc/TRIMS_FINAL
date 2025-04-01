@@ -1,33 +1,19 @@
-
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Building2, 
-  LockKeyhole, 
-  BarChart4, 
-  Bell, 
-  FileText, 
-  Wallet,
-  Users,
-  CheckCircle2,
-  ArrowDown,
-  ArrowRight,
-  Sparkles,
-} from 'lucide-react';
-
+import { Building2, LockKeyhole, BarChart4, Bell, FileText, Wallet, Users, CheckCircle2, ArrowDown, ArrowRight, Sparkles } from 'lucide-react';
 const LandingPage = () => {
-  const { isAuthenticated, user } = useAuth();
-
+  const {
+    isAuthenticated,
+    user
+  } = useAuth();
   const redirectToDashboard = () => {
     if (user?.role === 'admin') {
       return '/admin/dashboard';
     }
     return '/tenant/dashboard';
   };
-
-  return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+  return <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-tmis-primary via-blue-500 to-tmis-secondary py-24 text-white overflow-hidden">
         {/* Animated Background Elements */}
@@ -57,23 +43,18 @@ const LandingPage = () => {
               Modern boarding house management for ATCCAS. Simplifying tenant, payment, and maintenance workflows into one sleek platform.
             </p>
             
-            {isAuthenticated && (
-              <div className="flex justify-center animate-[fade-in_0.5s_ease-out_0.8s_both]">
+            {isAuthenticated && <div className="flex justify-center animate-[fade-in_0.5s_ease-out_0.8s_both]">
                 <Button size="lg" className="bg-white text-tmis-primary hover:bg-white/90 group transition-all duration-300 transform hover:scale-105" asChild>
                   <Link to={redirectToDashboard()}>
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
-              </div>
-            )}
+              </div>}
           </div>
           
           <div className="flex justify-center mt-16 animate-[fade-in_0.5s_ease-out_1s_both]">
-            <a 
-              href="#features" 
-              className="flex flex-col items-center text-white/80 hover:text-white transition-colors"
-            >
+            <a href="#features" className="flex flex-col items-center text-white/80 hover:text-white transition-colors">
               <span className="text-sm font-medium mb-2">Discover More</span>
               <ArrowDown className="h-5 w-5 animate-bounce" />
             </a>
@@ -262,15 +243,12 @@ const LandingPage = () => {
               Join TMIS today and experience streamlined boarding house management at ATCCAS.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-[fade-in_0.5s_ease-out_0.5s_both]">
-              {isAuthenticated ? (
-                <Button size="lg" className="bg-white text-tmis-primary hover:bg-white/90 group transition-all duration-300 transform hover:scale-105" asChild>
+              {isAuthenticated ? <Button size="lg" className="bg-white text-tmis-primary hover:bg-white/90 group transition-all duration-300 transform hover:scale-105" asChild>
                   <Link to={redirectToDashboard()}>
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
-                </Button>
-              ) : (
-                <>
+                </Button> : <>
                   <Button size="lg" className="bg-white text-tmis-primary hover:bg-white/90 group transition-all duration-300 transform hover:scale-105" asChild>
                     <Link to="/login">
                       Login
@@ -278,13 +256,9 @@ const LandingPage = () => {
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 transition-all duration-300 transform hover:scale-105" asChild>
-                    <Link to="/register">
-                      Register
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
+                    
                   </Button>
-                </>
-              )}
+                </>}
             </div>
           </div>
         </div>
@@ -330,8 +304,6 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default LandingPage;
