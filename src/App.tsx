@@ -16,6 +16,9 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import TenantDashboard from "./pages/tenant/Dashboard";
 import NotFound from "./pages/NotFound";
 
+// Layouts
+import { TenantLayout } from "@/components/tenant/TenantLayout";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -44,13 +47,17 @@ const App = () => {
                 </Route>
                 
                 {/* Protected Tenant Routes */}
-                <Route path="tenant">
-                  <Route path="dashboard" element={
-                    <ProtectedRoute allowedRoles={['tenant']}>
-                      <TenantDashboard />
-                    </ProtectedRoute>
-                  } />
-                  {/* Add other tenant routes here */}
+                <Route path="tenant" element={
+                  <ProtectedRoute allowedRoles={['tenant']}>
+                    <Layout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<Navigate to="/tenant/dashboard" />} />
+                  <Route path="dashboard" element={<TenantDashboard />} />
+                  {/* Placeholder routes for the navigation system */}
+                  <Route path="payments" element={<div className="container mx-auto py-8"><h1 className="text-2xl font-bold">Payments Page</h1><p>Coming soon...</p></div>} />
+                  <Route path="maintenance" element={<div className="container mx-auto py-8"><h1 className="text-2xl font-bold">Maintenance Page</h1><p>Coming soon...</p></div>} />
+                  <Route path="profile" element={<div className="container mx-auto py-8"><h1 className="text-2xl font-bold">Profile Page</h1><p>Coming soon...</p></div>} />
                 </Route>
                 
                 {/* Redirect for authenticated users */}

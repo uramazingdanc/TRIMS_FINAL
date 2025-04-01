@@ -50,6 +50,21 @@
   animation: slide-in-right 0.5s ease-out forwards;
 }
 
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.5s ease-out forwards;
+}
+
 .card {
   padding: 2em;
 }
