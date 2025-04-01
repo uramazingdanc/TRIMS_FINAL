@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/Spinner';
 import { v4 as uuidv4 } from 'uuid';
 import { tenants, rooms } from '@/services/mockData';
+import { Tenant } from '@/types/tenant';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -43,7 +44,7 @@ const Register = () => {
     const availableRoom = rooms.find(room => room.status === 'available');
     
     // Create a new tenant profile
-    const newTenant = {
+    const newTenant: Tenant = {
       id: uuidv4(),
       name: userData.name,
       email: userData.email,
@@ -53,8 +54,8 @@ const Register = () => {
       leaseStartDate: new Date().toISOString().split('T')[0], // Today's date as YYYY-MM-DD
       leaseEndDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0], // 1 year from now
       roomId: availableRoom?.id || '', // Assign a room if available
-      status: 'active',
-      paymentStatus: 'pending',
+      status: 'active', // Explicitly set as one of the allowed values
+      paymentStatus: 'pending', // Explicitly set as one of the allowed values
       balance: availableRoom?.pricePerMonth || 0,
       userId: userId
     };
@@ -92,8 +93,17 @@ const Register = () => {
     
     try {
       setIsSubmitting(true);
-      // Register the user
-      const user = await register(formData);
+      // Register the user - we need to ensure this returns a user with an id
+      const user = await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword
+      });
+      
+      if (!user || !user.id) {
+        throw new Error('User registration failed. No user ID returned.');
+      }
       
       // Create tenant profile
       createTenantProfile(user.id, formData);

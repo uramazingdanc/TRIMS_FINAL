@@ -5,8 +5,8 @@ import { login, register, logout, getCurrentUser } from '@/services/authService'
 import { useToast } from '@/components/ui/use-toast';
 
 interface AuthContextType extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<User>;
+  register: (data: RegisterData) => Promise<User>;
   logout: () => Promise<void>;
 }
 
@@ -45,6 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Login successful",
         description: `Welcome back, ${user.name}!`,
       });
+      
+      return user;
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }));
       toast({
@@ -71,6 +73,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Registration successful",
         description: `Welcome to TMIS, ${user.name}!`,
       });
+      
+      return user;
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }));
       toast({
