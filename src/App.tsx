@@ -18,51 +18,53 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Layout />}>
-              <Route index element={<LandingPage />} />
-              <Route path="login" element={<Login />} />
-              <Route path="register" element={<Register />} />
-              
-              {/* Protected Admin Routes */}
-              <Route path="admin">
-                <Route path="dashboard" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                } />
-                {/* Add other admin routes here */}
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Layout />}>
+                <Route index element={<LandingPage />} />
+                <Route path="login" element={<Login />} />
+                <Route path="register" element={<Register />} />
+                
+                {/* Protected Admin Routes */}
+                <Route path="admin">
+                  <Route path="dashboard" element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  } />
+                  {/* Add other admin routes here */}
+                </Route>
+                
+                {/* Protected Tenant Routes */}
+                <Route path="tenant">
+                  <Route path="dashboard" element={
+                    <ProtectedRoute allowedRoles={['tenant']}>
+                      <TenantDashboard />
+                    </ProtectedRoute>
+                  } />
+                  {/* Add other tenant routes here */}
+                </Route>
+                
+                {/* Redirect for authenticated users */}
+                <Route path="/" element={<Navigate to="/login" />} />
+                
+                {/* 404 - Not Found */}
+                <Route path="*" element={<NotFound />} />
               </Route>
-              
-              {/* Protected Tenant Routes */}
-              <Route path="tenant">
-                <Route path="dashboard" element={
-                  <ProtectedRoute allowedRoles={['tenant']}>
-                    <TenantDashboard />
-                  </ProtectedRoute>
-                } />
-                {/* Add other tenant routes here */}
-              </Route>
-              
-              {/* Redirect for authenticated users */}
-              <Route path="/" element={<Navigate to="/login" />} />
-              
-              {/* 404 - Not Found */}
-              <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
