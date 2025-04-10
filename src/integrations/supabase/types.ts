@@ -9,13 +9,140 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          name: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          name: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rooms: {
+        Row: {
+          created_at: string
+          floor: string
+          id: string
+          number: string
+          occupants: number | null
+          price_per_month: number
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          floor: string
+          id?: string
+          number: string
+          occupants?: number | null
+          price_per_month: number
+          status: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          floor?: string
+          id?: string
+          number?: string
+          occupants?: number | null
+          price_per_month?: number
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tenants: {
+        Row: {
+          address: string | null
+          balance: number | null
+          created_at: string
+          email: string
+          emergency_contact: string | null
+          id: string
+          lease_end_date: string
+          lease_start_date: string
+          name: string
+          payment_status: string
+          phone: string
+          room_id: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          balance?: number | null
+          created_at?: string
+          email: string
+          emergency_contact?: string | null
+          id?: string
+          lease_end_date: string
+          lease_start_date: string
+          name: string
+          payment_status: string
+          phone: string
+          room_id?: string | null
+          status: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          balance?: number | null
+          created_at?: string
+          email?: string
+          emergency_contact?: string | null
+          id?: string
+          lease_end_date?: string
+          lease_start_date?: string
+          name?: string
+          payment_status?: string
+          phone?: string
+          room_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_auth_user_role: {
+        Args: { user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

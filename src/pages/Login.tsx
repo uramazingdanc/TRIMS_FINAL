@@ -30,11 +30,14 @@ const Login = () => {
     
     try {
       setIsSubmitting(true);
-      await login({ email, password });
+      const user = await login({ email, password });
       
-      // Redirect to appropriate dashboard based on user type
-      // This is handled by the AuthContext, which will redirect to the dashboard
-      navigate('/');
+      // Redirect to appropriate dashboard based on user role
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/tenant/dashboard');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to login');
     } finally {

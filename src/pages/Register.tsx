@@ -5,7 +5,6 @@ import {
   Card, 
   CardContent, 
   CardDescription, 
-  CardFooter, 
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
@@ -17,6 +16,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { tenants, rooms, addDataItem, updateDataItem } from '@/services/mockData';
 import { Tenant } from '@/types/tenant';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -40,65 +40,6 @@ const Register = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const createTenantProfile = async (userId: string, userData: typeof formData) => {
-    try {
-      // Find an available room
-      const availableRoom = rooms.find(room => room.status === 'available');
-      
-      if (!availableRoom) {
-        toast({
-          title: "No rooms available",
-          description: "There are no available rooms at the moment. Please contact administration.",
-          variant: "destructive"
-        });
-        return null;
-      }
-      
-      // Create a new tenant profile
-      const newTenant: Tenant = {
-        id: uuidv4(),
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone || '(Not provided)',
-        address: userData.address || '(Not provided)',
-        emergencyContact: userData.emergencyContact || '(Not provided)',
-        leaseStartDate: new Date().toISOString().split('T')[0], // Today's date as YYYY-MM-DD
-        leaseEndDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0], // 1 year from now
-        roomId: availableRoom.id,
-        status: 'active', // Explicitly set as one of the allowed values
-        paymentStatus: 'pending', // Explicitly set as one of the allowed values
-        balance: availableRoom.pricePerMonth || 0,
-        userId: userId
-      };
-      
-      // Add to tenants array using the data service
-      const createdTenant = await addDataItem<Tenant>(tenants, newTenant);
-      
-      // Update room status
-      await updateDataItem(rooms, availableRoom.id, {
-        status: 'occupied',
-        occupants: availableRoom.occupants + 1
-      });
-      
-      console.log('New tenant created:', createdTenant);
-      
-      toast({
-        title: "Tenant profile created",
-        description: `Room ${availableRoom.number} has been assigned to you.`,
-      });
-      
-      return createdTenant;
-    } catch (error) {
-      console.error("Error creating tenant profile:", error);
-      toast({
-        title: "Error creating tenant profile",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive"
-      });
-      return null;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -116,7 +57,7 @@ const Register = () => {
     
     try {
       setIsSubmitting(true);
-      // Register the user - we need to ensure this returns a user with an id
+      // Register the user - this will now use Supabase
       const user = await register({
         name: formData.name,
         email: formData.email,
@@ -128,11 +69,67 @@ const Register = () => {
         throw new Error('User registration failed. No user ID returned.');
       }
       
-      // Create tenant profile
-      const tenant = await createTenantProfile(user.id, formData);
-      
-      if (!tenant) {
-        throw new Error('Failed to create tenant profile.');
+      // Create tenant profile in Supabase
+      try {
+        // Find an available room
+        const { data: availableRoom } = await supabase
+          .from('rooms')
+          .select('*')
+          .eq('status', 'available')
+          .limit(1)
+          .single();
+          
+        if (!availableRoom) {
+          toast({
+            title: "No rooms available",
+            description: "There are no available rooms at the moment. Please contact administration.",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Create tenant record
+        const { data: tenant, error } = await supabase
+          .from('tenants')
+          .insert({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address || '(Not provided)',
+            emergency_contact: formData.emergencyContact || '(Not provided)',
+            lease_start_date: new Date().toISOString().split('T')[0],
+            lease_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+            room_id: availableRoom.id,
+            status: 'active',
+            payment_status: 'pending',
+            balance: availableRoom.price_per_month || 0,
+            user_id: user.id
+          })
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        // Update room status
+        await supabase
+          .from('rooms')
+          .update({
+            status: 'occupied',
+            occupants: availableRoom.occupants + 1
+          })
+          .eq('id', availableRoom.id);
+        
+        toast({
+          title: "Tenant profile created",
+          description: `Room ${availableRoom.number} has been assigned to you.`,
+        });
+      } catch (error) {
+        console.error("Error creating tenant profile:", error);
+        toast({
+          title: "Error creating tenant profile",
+          description: error instanceof Error ? error.message : "An unexpected error occurred",
+          variant: "destructive"
+        });
       }
       
       // Redirect to tenant dashboard

@@ -1,8 +1,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthState, User, LoginCredentials, RegisterData } from '@/types/auth';
-import { login, register, logout, getCurrentUser } from '@/services/authService';
+import { login, register, logout } from '@/services/authService';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<User>;
@@ -21,17 +22,91 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const loadCurrentUser = async () => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          try {
+            // Get user profile data
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            const user: User = {
+              id: session.user.id,
+              email: session.user.email!,
+              name: profileData?.name || '',
+              role: profileData?.role || 'tenant',
+              avatarUrl: profileData?.avatar_url,
+            };
+
+            setState({
+              user,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+
+            // Save to localStorage for backward compatibility
+            localStorage.setItem('tmis_user', JSON.stringify(user));
+          } catch (error) {
+            console.error('Error getting user profile:', error);
+            setState({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+            });
+          }
+        } else if (event === 'SIGNED_OUT') {
+          localStorage.removeItem('tmis_user');
+          setState({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
+      }
+    );
+
+    // THEN check for existing session
+    const checkCurrentSession = async () => {
       try {
-        const user = getCurrentUser();
-        setState({
-          user,
-          isAuthenticated: !!user,
-          isLoading: false,
-        });
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session) {
+          // Get user profile data
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          const user: User = {
+            id: session.user.id,
+            email: session.user.email!,
+            name: profileData?.name || '',
+            role: profileData?.role || 'tenant',
+            avatarUrl: profileData?.avatar_url,
+          };
+
+          setState({
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+
+          // Save to localStorage for backward compatibility
+          localStorage.setItem('tmis_user', JSON.stringify(user));
+        } else {
+          setState({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
       } catch (error) {
-        console.error("Error loading current user:", error);
+        console.error("Error loading current session:", error);
         setState({
           user: null,
           isAuthenticated: false,
@@ -40,7 +115,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
     
-    loadCurrentUser();
+    checkCurrentSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogin = async (credentials: LoginCredentials) => {
