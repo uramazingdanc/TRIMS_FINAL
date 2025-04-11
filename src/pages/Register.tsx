@@ -5,6 +5,7 @@ import {
   Card, 
   CardContent, 
   CardDescription, 
+  CardFooter, 
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
@@ -12,11 +13,16 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/Spinner';
-import { v4 as uuidv4 } from 'uuid';
-import { tenants, rooms, addDataItem, updateDataItem } from '@/services/mockData';
-import { Tenant } from '@/types/tenant';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+
+interface Room {
+  id: string;
+  number: string;
+  price_per_month: number;
+  occupants: number;
+  status: string;
+}
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -72,14 +78,14 @@ const Register = () => {
       // Create tenant profile in Supabase
       try {
         // Find an available room
-        const { data: availableRoom } = await supabase
+        const { data: availableRoom, error: roomError } = await supabase
           .from('rooms')
           .select('*')
           .eq('status', 'available')
           .limit(1)
           .single();
           
-        if (!availableRoom) {
+        if (roomError || !availableRoom) {
           toast({
             title: "No rooms available",
             description: "There are no available rooms at the moment. Please contact administration.",
@@ -88,40 +94,44 @@ const Register = () => {
           return;
         }
         
+        const roomData = availableRoom as unknown as Room;
+        
         // Create tenant record
-        const { data: tenant, error } = await supabase
+        const tenantData = {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address || '(Not provided)',
+          emergency_contact: formData.emergencyContact || '(Not provided)',
+          lease_start_date: new Date().toISOString().split('T')[0],
+          lease_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+          room_id: roomData.id,
+          status: 'active',
+          payment_status: 'pending',
+          balance: roomData.price_per_month || 0,
+          user_id: user.id
+        };
+        
+        const { error: tenantError } = await supabase
           .from('tenants')
-          .insert({
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address || '(Not provided)',
-            emergency_contact: formData.emergencyContact || '(Not provided)',
-            lease_start_date: new Date().toISOString().split('T')[0],
-            lease_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-            room_id: availableRoom.id,
-            status: 'active',
-            payment_status: 'pending',
-            balance: availableRoom.price_per_month || 0,
-            user_id: user.id
-          })
-          .select()
-          .single();
+          .insert(tenantData as any);
           
-        if (error) throw error;
+        if (tenantError) throw tenantError;
         
         // Update room status
+        const updateRoomData = {
+          status: 'occupied',
+          occupants: roomData.occupants + 1
+        };
+        
         await supabase
           .from('rooms')
-          .update({
-            status: 'occupied',
-            occupants: availableRoom.occupants + 1
-          })
-          .eq('id', availableRoom.id);
+          .update(updateRoomData as any)
+          .eq('id', roomData.id);
         
         toast({
           title: "Tenant profile created",
-          description: `Room ${availableRoom.number} has been assigned to you.`,
+          description: `Room ${roomData.number} has been assigned to you.`,
         });
       } catch (error) {
         console.error("Error creating tenant profile:", error);

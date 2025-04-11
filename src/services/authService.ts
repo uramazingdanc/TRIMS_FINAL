@@ -23,13 +23,13 @@ export const login = async ({ email, password }: LoginCredentials): Promise<User
     if (profileError) throw new Error(profileError.message);
     if (!profile) throw new Error('User profile not found');
     
-    // Map Supabase user to our User type
+    // Map Supabase user to our User type with proper type safety
     const user: User = {
       id: data.user.id,
-      name: profile.name,
+      name: profile.name as string,
       email: data.user.email!,
-      role: profile.role,
-      avatarUrl: profile.avatar_url,
+      role: profile.role as 'admin' | 'tenant',
+      avatarUrl: profile.avatar_url as string | undefined,
     };
     
     return user;
@@ -68,7 +68,7 @@ export const register = async (data: RegisterData): Promise<User> => {
     
     if (profileError) throw new Error(profileError.message);
     
-    // Map to our User type
+    // Map to our User type with proper type safety
     const user: User = {
       id: authData.user.id,
       name: data.name,
@@ -102,10 +102,6 @@ export const getCurrentUser = (): User | null => {
     if (userStr) {
       return JSON.parse(userStr);
     }
-    
-    // If not in localStorage, get from Supabase session
-    const session = supabase.auth.getSession();
-    if (!session) return null;
     
     // This function now returns null as we're handling async session retrieval in the AuthContext
     return null;

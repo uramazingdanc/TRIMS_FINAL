@@ -34,22 +34,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .eq('id', session.user.id)
               .single();
 
-            const user: User = {
-              id: session.user.id,
-              email: session.user.email!,
-              name: profileData?.name || '',
-              role: profileData?.role || 'tenant',
-              avatarUrl: profileData?.avatar_url,
-            };
+            if (profileData) {
+              const user: User = {
+                id: session.user.id,
+                email: session.user.email!,
+                name: profileData.name as string || '',
+                role: profileData.role as 'admin' | 'tenant' || 'tenant',
+                avatarUrl: profileData.avatar_url as string | undefined,
+              };
 
-            setState({
-              user,
-              isAuthenticated: true,
-              isLoading: false,
-            });
+              setState({
+                user,
+                isAuthenticated: true,
+                isLoading: false,
+              });
 
-            // Save to localStorage for backward compatibility
-            localStorage.setItem('tmis_user', JSON.stringify(user));
+              // Save to localStorage for backward compatibility
+              localStorage.setItem('tmis_user', JSON.stringify(user));
+            } else {
+              // Handle case where profile doesn't exist yet
+              setState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+              });
+            }
           } catch (error) {
             console.error('Error getting user profile:', error);
             setState({
@@ -82,22 +91,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .eq('id', session.user.id)
             .single();
 
-          const user: User = {
-            id: session.user.id,
-            email: session.user.email!,
-            name: profileData?.name || '',
-            role: profileData?.role || 'tenant',
-            avatarUrl: profileData?.avatar_url,
-          };
+          if (profileData) {
+            const user: User = {
+              id: session.user.id,
+              email: session.user.email!,
+              name: profileData.name as string || '',
+              role: profileData.role as 'admin' | 'tenant' || 'tenant',
+              avatarUrl: profileData.avatar_url as string | undefined,
+            };
 
-          setState({
-            user,
-            isAuthenticated: true,
-            isLoading: false,
-          });
+            setState({
+              user,
+              isAuthenticated: true,
+              isLoading: false,
+            });
 
-          // Save to localStorage for backward compatibility
-          localStorage.setItem('tmis_user', JSON.stringify(user));
+            // Save to localStorage for backward compatibility
+            localStorage.setItem('tmis_user', JSON.stringify(user));
+          } else {
+            setState({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+            });
+          }
         } else {
           setState({
             user: null,
