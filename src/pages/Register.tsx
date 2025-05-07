@@ -5,9 +5,9 @@ import {
   Card, 
   CardContent, 
   CardDescription, 
-  CardFooter, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/Spinner';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { RoomsTable, TenantsTable } from '@/types/supabase';
 
 interface Room {
   id: string;
@@ -94,10 +95,11 @@ const Register = () => {
           return;
         }
         
-        const roomData = availableRoom as unknown as Room;
+        // Cast to correct type
+        const roomData = availableRoom as RoomsTable;
         
         // Create tenant record
-        const tenantData = {
+        const tenantData: Partial<TenantsTable> = {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
@@ -114,19 +116,19 @@ const Register = () => {
         
         const { error: tenantError } = await supabase
           .from('tenants')
-          .insert(tenantData as any);
+          .insert(tenantData);
           
         if (tenantError) throw tenantError;
         
         // Update room status
         const updateRoomData = {
           status: 'occupied',
-          occupants: roomData.occupants + 1
+          occupants: (roomData.occupants || 0) + 1
         };
         
         await supabase
           .from('rooms')
-          .update(updateRoomData as any)
+          .update(updateRoomData)
           .eq('id', roomData.id);
         
         toast({

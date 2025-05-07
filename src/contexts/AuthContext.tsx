@@ -4,6 +4,7 @@ import { AuthState, User, LoginCredentials, RegisterData } from '@/types/auth';
 import { login, register, logout } from '@/services/authService';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ProfilesTable } from '@/types/supabase';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<User>;
@@ -28,19 +29,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (event === 'SIGNED_IN' && session) {
           try {
             // Get user profile data
-            const { data: profileData } = await supabase
+            const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
               .single();
 
+            if (profileError) throw profileError;
+
             if (profileData) {
+              // Cast to correct type
+              const profile = profileData as ProfilesTable;
+              
               const user: User = {
                 id: session.user.id,
                 email: session.user.email!,
-                name: profileData.name as string || '',
-                role: profileData.role as 'admin' | 'tenant' || 'tenant',
-                avatarUrl: profileData.avatar_url as string | undefined,
+                name: profile.name || '',
+                role: profile.role as 'admin' | 'tenant',
+                avatarUrl: profile.avatar_url,
               };
 
               setState({
@@ -85,19 +91,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (session) {
           // Get user profile data
-          const { data: profileData } = await supabase
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
 
+          if (profileError) throw profileError;
+
           if (profileData) {
+            // Cast to correct type
+            const profile = profileData as ProfilesTable;
+            
             const user: User = {
               id: session.user.id,
               email: session.user.email!,
-              name: profileData.name as string || '',
-              role: profileData.role as 'admin' | 'tenant' || 'tenant',
-              avatarUrl: profileData.avatar_url as string | undefined,
+              name: profile.name || '',
+              role: profile.role as 'admin' | 'tenant',
+              avatarUrl: profile.avatar_url,
             };
 
             setState({

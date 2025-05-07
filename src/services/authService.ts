@@ -1,6 +1,7 @@
 
 import { LoginCredentials, RegisterData, User } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
+import { ProfilesTable } from '@/types/supabase';
 
 // Modified authentication functions to use Supabase
 export const login = async ({ email, password }: LoginCredentials): Promise<User> => {
@@ -23,13 +24,16 @@ export const login = async ({ email, password }: LoginCredentials): Promise<User
     if (profileError) throw new Error(profileError.message);
     if (!profile) throw new Error('User profile not found');
     
+    // Cast the profile to the correct type
+    const profileData = profile as ProfilesTable;
+    
     // Map Supabase user to our User type with proper type safety
     const user: User = {
       id: data.user.id,
-      name: profile.name as string,
+      name: profileData.name,
       email: data.user.email!,
-      role: profile.role as 'admin' | 'tenant',
-      avatarUrl: profile.avatar_url as string | undefined,
+      role: profileData.role as 'admin' | 'tenant',
+      avatarUrl: profileData.avatar_url,
     };
     
     return user;
@@ -67,6 +71,9 @@ export const register = async (data: RegisterData): Promise<User> => {
       .single();
     
     if (profileError) throw new Error(profileError.message);
+    
+    // Cast the profile to the correct type
+    const profileData = profile as ProfilesTable;
     
     // Map to our User type with proper type safety
     const user: User = {
