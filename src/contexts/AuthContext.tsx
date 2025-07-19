@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthState, User, LoginCredentials, RegisterData } from '@/types/auth';
 import { login, register, logout } from '@/services/authService';
