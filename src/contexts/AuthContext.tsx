@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('*')
-              .eq('id', session.user.id)
+              .eq('user_id', session.user.id)
               .single();
 
             if (profileError) throw profileError;
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 email: session.user.email!,
                 name: profile.name || '',
                 role: profile.role as 'admin' | 'tenant',
-                avatarUrl: profile.avatar_url,
+                avatarUrl: undefined, // avatar_url doesn't exist in profiles table
               };
 
               setState({
@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', session.user.id)
+            .eq('user_id', session.user.id)
             .single();
 
           if (profileError) throw profileError;
@@ -108,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               email: session.user.email!,
               name: profile.name || '',
               role: profile.role as 'admin' | 'tenant',
-              avatarUrl: profile.avatar_url,
+              avatarUrl: undefined, // avatar_url doesn't exist in profiles table
             };
 
             setState({

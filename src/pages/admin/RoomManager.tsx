@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/Spinner';
 import { Search, Plus, Edit, Trash, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -393,7 +394,7 @@ const RoomManager = () => {
                           <div className="flex flex-wrap gap-1">
                             {amenities[room.id].map((amenity) => (
                               <Badge key={amenity.id} variant="outline" className="text-xs">
-                                {amenity.name}
+                                {amenity.amenity_name}
                               </Badge>
                             ))}
                           </div>

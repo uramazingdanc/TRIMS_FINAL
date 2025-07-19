@@ -18,7 +18,7 @@ export const login = async ({ email, password }: LoginCredentials): Promise<User
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', data.user.id)
+      .eq('user_id', data.user.id)
       .single();
       
     if (profileError) throw new Error(profileError.message);
@@ -33,7 +33,7 @@ export const login = async ({ email, password }: LoginCredentials): Promise<User
       name: profileData.name,
       email: data.user.email!,
       role: profileData.role as 'admin' | 'tenant',
-      avatarUrl: profileData.avatar_url,
+      avatarUrl: undefined, // avatar_url doesn't exist in profiles table
     };
     
     return user;
@@ -67,7 +67,7 @@ export const register = async (data: RegisterData): Promise<User> => {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', authData.user.id)
+      .eq('user_id', authData.user.id)
       .single();
     
     if (profileError) throw new Error(profileError.message);

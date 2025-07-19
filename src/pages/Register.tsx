@@ -108,7 +108,7 @@ const Register = () => {
           lease_start_date: new Date().toISOString().split('T')[0],
           lease_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
           room_id: roomData.id,
-          status: 'active',
+          // status: 'active', // this field doesn't exist in tenants table
           payment_status: 'pending',
           balance: roomData.price_per_month || 0,
           user_id: user.id
@@ -116,7 +116,19 @@ const Register = () => {
         
         const { error: tenantError } = await supabase
           .from('tenants')
-          .insert(tenantData);
+          .insert({
+            name: tenantData.name,
+            email: tenantData.email,
+            phone: tenantData.phone,
+            address: tenantData.address,
+            emergency_contact: tenantData.emergency_contact,
+            lease_start_date: tenantData.lease_start_date,
+            lease_end_date: tenantData.lease_end_date,
+            room_id: tenantData.room_id,
+            payment_status: tenantData.payment_status,
+            balance: tenantData.balance,
+            user_id: tenantData.user_id
+          });
           
         if (tenantError) throw tenantError;
         
