@@ -71,32 +71,12 @@ const Register = () => {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        confirmPassword: formData.confirmPassword
+        confirmPassword: formData.confirmPassword,
+        role: role
       });
-      
-      if (!user || !user.id) {
-        throw new Error('User registration failed. No user ID returned.');
-      }
-      
-      // Create user profile in profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: user.id,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          role: role
-        });
-        
-      if (profileError) {
-        console.error('Error creating profile:', profileError);
-        setError('Failed to create user profile');
-        return;
-      }
 
-      // Only create tenant profile if the role is tenant
-      if (role === 'tenant') {
+      // Only create additional tenant data if the role is tenant and we need extra fields
+      if (role === 'tenant' && (formData.address || formData.emergencyContact)) {
         try {
           // Find an available room
           const { data: availableRoom, error: roomError } = await supabase

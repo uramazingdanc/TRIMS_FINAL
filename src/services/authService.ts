@@ -50,37 +50,53 @@ export const register = async (data: RegisterData): Promise<User> => {
       email: data.email,
       password: data.password,
       options: {
-        data: {
-          name: data.name,
-          role: 'tenant', // Default role for registration is tenant
-        },
+        emailRedirectTo: `${window.location.origin}/`,
       },
     });
 
     if (error) throw new Error(error.message);
     if (!authData || !authData.user) throw new Error('Registration failed: No user data returned');
     
-    // Wait briefly for the trigger to create the profile
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const userRole = data.role || 'tenant';
     
-    // Get the created profile
+    // Create the profile manually
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('*')
-      .eq('user_id', authData.user.id)
+      .insert({
+        user_id: authData.user.id,
+        name: data.name,
+        email: data.email,
+        role: userRole,
+      })
+      .select()
       .single();
     
-    if (profileError) throw new Error(profileError.message);
+    if (profileError) throw new Error(`Profile creation failed: ${profileError.message}`);
     
-    // Cast the profile to the correct type
-    const profileData = profile as ProfilesTable;
+    // If user is registering as tenant, create tenant record
+    if (userRole === 'tenant') {
+      const { error: tenantError } = await supabase
+        .from('tenants')
+        .insert({
+          user_id: authData.user.id,
+          name: data.name,
+          email: data.email,
+          lease_start_date: new Date().toISOString().split('T')[0],
+          lease_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 year from now
+        });
+      
+      if (tenantError) {
+        console.error('Tenant record creation failed:', tenantError);
+        // Don't throw here as the user account is already created
+      }
+    }
     
-    // Map to our User type with proper type safety
+    // Map to our User type
     const user: User = {
       id: authData.user.id,
       name: data.name,
       email: authData.user.email!,
-      role: 'tenant',
+      role: userRole,
       avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.email}`,
     };
     
