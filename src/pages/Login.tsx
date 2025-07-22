@@ -45,16 +45,6 @@ const Login = () => {
     }
   };
 
-  // Demo account login shortcuts
-  const loginAsAdmin = () => {
-    setEmail('admin@tmis.com');
-    setPassword('password'); // In a real app, you would not pre-fill passwords
-  };
-
-  const loginAsTenant = () => {
-    setEmail('john@example.com');
-    setPassword('password'); // In a real app, you would not pre-fill passwords
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-tmis-light to-white px-4">
@@ -121,35 +111,6 @@ const Login = () => {
             </Button>
           </form>
           
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Demo Accounts</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <Button
-                variant="outline"
-                onClick={loginAsAdmin}
-                type="button"
-                disabled={isSubmitting}
-              >
-                Admin User
-              </Button>
-              <Button
-                variant="outline"
-                onClick={loginAsTenant}
-                type="button"
-                disabled={isSubmitting}
-              >
-                Tenant User
-              </Button>
-            </div>
-          </div>
         </CardContent>
         
         <CardFooter className="flex justify-center">
