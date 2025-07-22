@@ -1,6 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { rooms } from '@/services/mockData';
+import { supabase } from '@/integrations/supabase/client';
+import { RoomsTable } from '@/types/supabase';
+import { useToast } from '@/hooks/use-toast';
 import {
   Card,
   CardContent,
@@ -21,31 +23,49 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Search, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/Spinner';
+import { Link } from 'react-router-dom';
 
 const RoomsPage = () => {
-  const [roomsList, setRoomsList] = useState(rooms);
+  const [roomsList, setRoomsList] = useState<RoomsTable[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // This would fetch rooms from API in a real app
-    setRoomsList(rooms);
+    fetchRooms();
   }, []);
+
+  const fetchRooms = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('rooms')
+        .select('*')
+        .order('number', { ascending: true });
+
+      if (error) throw error;
+      setRoomsList(data || []);
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not fetch rooms.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    
-    if (!e.target.value.trim()) {
-      setRoomsList(rooms);
-      return;
-    }
-    
-    const filteredRooms = rooms.filter(room => 
-      room.number.toLowerCase().includes(e.target.value.toLowerCase()) ||
-      room.type.toLowerCase().includes(e.target.value.toLowerCase())
-    );
-    
-    setRoomsList(filteredRooms);
   };
+
+  const filteredRooms = roomsList.filter(room => 
+    room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    room.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getRoomStatusBadge = (status: string) => {
     switch (status) {
@@ -67,9 +87,11 @@ const RoomsPage = () => {
           <h1 className="text-3xl font-bold text-tmis-dark">Rooms</h1>
           <p className="text-muted-foreground">Manage your room inventory</p>
         </div>
-        <Button className="bg-tmis-primary hover:bg-tmis-primary/90">
-          <Plus className="mr-2 h-4 w-4" />
-          Add New Room
+        <Button className="bg-tmis-primary hover:bg-tmis-primary/90" asChild>
+          <Link to="/admin/room-manager">
+            <Plus className="mr-2 h-4 w-4" />
+            Manage Rooms
+          </Link>
         </Button>
       </div>
       
@@ -94,7 +116,12 @@ const RoomsPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <Spinner size="lg" />
+            </div>
+          ) : (
+            <Table>
             <TableCaption>A list of all your rooms.</TableCaption>
             <TableHeader>
               <TableRow>
@@ -109,15 +136,17 @@ const RoomsPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {roomsList.length > 0 ? (
-                roomsList.map((room) => (
+              {filteredRooms.length > 0 ? (
+                filteredRooms.map((room) => (
                   <TableRow key={room.id}>
                     <TableCell className="font-medium">{room.number}</TableCell>
                     <TableCell>{room.floor}</TableCell>
                     <TableCell className="capitalize">{room.type}</TableCell>
-                    <TableCell>{room.capacity}</TableCell>
+                    <TableCell>
+                      {room.type === 'single' ? 1 : room.type === 'double' ? 2 : 3}
+                    </TableCell>
                     <TableCell>{room.occupants}</TableCell>
-                    <TableCell>₱{room.pricePerMonth.toLocaleString()}</TableCell>
+                    <TableCell>₱{room.price_per_month.toLocaleString()}</TableCell>
                     <TableCell>{getRoomStatusBadge(room.status)}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="outline" size="sm">
@@ -134,7 +163,8 @@ const RoomsPage = () => {
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

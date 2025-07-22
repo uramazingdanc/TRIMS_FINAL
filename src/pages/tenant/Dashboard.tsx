@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { TenantsTable, RoomsTable, PaymentsTable, MaintenanceRequestsTable } from '@/types/supabase';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Card, 
   CardContent, 
@@ -23,53 +26,82 @@ import {
   Wrench,
   ChevronRight
 } from 'lucide-react';
-import { tenants, payments, maintenanceRequests, rooms } from '@/services/mockData';
 import { Link } from 'react-router-dom';
 import { TenantNavigation } from '@/components/tenant/TenantNavigation';
 
 const TenantDashboard = () => {
   const { user } = useAuth();
-  const [tenant, setTenant] = useState<any>(null);
-  const [room, setRoom] = useState<any>(null);
-  const [tenantPayments, setTenantPayments] = useState<any[]>([]);
-  const [recentRequests, setRecentRequests] = useState<any[]>([]);
+  const { toast } = useToast();
+  const [tenant, setTenant] = useState<TenantsTable | null>(null);
+  const [room, setRoom] = useState<RoomsTable | null>(null);
+  const [tenantPayments, setTenantPayments] = useState<PaymentsTable[]>([]);
+  const [recentRequests, setRecentRequests] = useState<MaintenanceRequestsTable[]>([]);
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      // Find tenant data based on user ID
-      const currentTenant = tenants.find(t => t.userId === user.id);
-      
-      if (currentTenant) {
-        setTenant(currentTenant);
-        
-        // Get tenant's room
-        const tenantRoom = rooms.find(r => r.id === currentTenant.roomId);
-        setRoom(tenantRoom);
-        
-        // Get tenant's payments
-        const filteredPayments = payments
-          .filter(p => p.tenantId === currentTenant.id)
-          .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
-        setTenantPayments(filteredPayments);
-        
-        // Get tenant's maintenance requests
-        const filteredRequests = maintenanceRequests
-          .filter(r => r.tenantId === currentTenant.id)
-          .sort((a, b) => new Date(b.dateSubmitted).getTime() - new Date(a.dateSubmitted).getTime());
-        setRecentRequests(filteredRequests);
-      }
+      fetchTenantData();
     }
   }, [user]);
+
+  const fetchTenantData = async () => {
+    try {
+      setLoading(true);
+      
+      // Get tenant data for current user
+      const { data: tenantData, error: tenantError } = await supabase
+        .from('tenants')
+        .select('*, rooms(*)')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (tenantError) {
+        console.error('Tenant not found:', tenantError);
+        return;
+      }
+
+      setTenant(tenantData);
+      setRoom(tenantData.rooms);
+
+      // Get tenant's payments
+      const { data: paymentsData } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('tenant_id', tenantData.id)
+        .order('payment_date', { ascending: false });
+
+      setTenantPayments(paymentsData || []);
+
+      // Get tenant's maintenance requests
+      const { data: requestsData } = await supabase
+        .from('maintenance_requests')
+        .select('*')
+        .eq('tenant_id', tenantData.id)
+        .order('created_at', { ascending: false });
+
+      setRecentRequests(requestsData || []);
+      
+    } catch (error) {
+      console.error('Error fetching tenant data:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not load your dashboard data.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Calculate days until next payment due
   const calculateDaysUntilDue = () => {
     if (!tenantPayments || tenantPayments.length === 0) return null;
     
-    const nextPayment = tenantPayments.find(p => p.status === 'pending' || p.status === 'overdue');
+    const nextPayment = tenantPayments.find(p => p.status === 'pending');
     if (!nextPayment) return null;
     
-    const dueDate = new Date(nextPayment.dueDate);
+    const dueDate = new Date(nextPayment.payment_date);
     const today = new Date();
     
     // Set hours to 0 to compare just the dates
@@ -84,7 +116,7 @@ const TenantDashboard = () => {
 
   const dueInfo = calculateDaysUntilDue();
 
-  if (!tenant || !room) {
+  if (loading || !tenant) {
     return (
       <div className="container mx-auto py-8">
         <div className="text-center">
@@ -105,7 +137,7 @@ const TenantDashboard = () => {
         </div>
 
         {/* Alert for overdue payment */}
-        {tenant.paymentStatus === 'overdue' && (
+        {tenant.payment_status === 'overdue' && (
           <Card className="bg-red-50 border-red-200">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
@@ -138,27 +170,25 @@ const TenantDashboard = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Room Number</span>
-                  <span className="font-medium">{room.number}</span>
+                  <span className="font-medium">{room?.number || 'Not assigned'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Type</span>
-                  <span className="font-medium capitalize">{room.type}</span>
+                  <span className="font-medium capitalize">{room?.type || 'N/A'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Monthly Rent</span>
-                  <span className="font-medium">₱{room.pricePerMonth.toLocaleString()}</span>
+                  <span className="font-medium">₱{room?.price_per_month?.toLocaleString() || '0'}</span>
                 </div>
                 <Separator />
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-muted-foreground">Amenities</span>
+                    <span className="text-muted-foreground">Status</span>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {room.amenities.map((amenity: string, index: number) => (
-                      <Badge key={index} variant="outline" className="bg-muted">
-                        {amenity}
-                      </Badge>
-                    ))}
+                    <Badge variant="outline" className="bg-muted">
+                      {room ? 'Assigned' : 'No room assigned'}
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -169,9 +199,9 @@ const TenantDashboard = () => {
                   <span className="text-sm font-medium">Lease Period</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span>{tenant.leaseStartDate}</span>
+                  <span>{tenant.lease_start_date}</span>
                   <span>to</span>
-                  <span>{tenant.leaseEndDate}</span>
+                  <span>{tenant.lease_end_date}</span>
                 </div>
                 <Progress
                   value={50} // Replace with actual progress calculation
@@ -201,14 +231,14 @@ const TenantDashboard = () => {
                   <span className="text-muted-foreground">Payment Status</span>
                   <Badge 
                     className={
-                      tenant.paymentStatus === 'paid' 
+                      tenant.payment_status === 'paid' 
                         ? 'bg-green-100 text-green-800 hover:bg-green-100' 
-                        : tenant.paymentStatus === 'overdue'
+                        : tenant.payment_status === 'overdue'
                         ? 'bg-red-100 text-red-800 hover:bg-red-100'
                         : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'
                     }
                   >
-                    {tenant.paymentStatus === 'paid' ? 'Paid' : tenant.paymentStatus === 'overdue' ? 'Overdue' : 'Pending'}
+                    {tenant.payment_status === 'paid' ? 'Paid' : tenant.payment_status === 'overdue' ? 'Overdue' : 'Pending'}
                   </Badge>
                 </div>
                 <Separator />
@@ -216,7 +246,7 @@ const TenantDashboard = () => {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-muted-foreground">Next Payment Due</span>
-                      <span className="font-medium">{dueInfo.payment.dueDate}</span>
+                      <span className="font-medium">{dueInfo.payment.payment_date}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-2">
                       <CalendarCheck className="h-5 w-5 text-tmis-primary" />
@@ -295,7 +325,7 @@ const TenantDashboard = () => {
                             {request.status}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
-                            Submitted on {request.dateSubmitted}
+                            Submitted on {new Date(request.created_at).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
