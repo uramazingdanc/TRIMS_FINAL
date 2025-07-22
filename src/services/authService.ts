@@ -45,33 +45,25 @@ export const login = async ({ email, password }: LoginCredentials): Promise<User
 
 export const register = async (data: RegisterData): Promise<User> => {
   try {
-    // Register the new user with Supabase
+    const userRole = data.role || 'tenant';
+    
+    // Register the new user with Supabase with metadata
     const { data: authData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
+        data: {
+          name: data.name,
+          role: userRole,
+        },
       },
     });
 
     if (error) throw new Error(error.message);
     if (!authData || !authData.user) throw new Error('Registration failed: No user data returned');
     
-    const userRole = data.role || 'tenant';
-    
-    // Create the profile manually
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        user_id: authData.user.id,
-        name: data.name,
-        email: data.email,
-        role: userRole,
-      })
-      .select()
-      .single();
-    
-    if (profileError) throw new Error(`Profile creation failed: ${profileError.message}`);
+    // Profile is now created automatically by the database trigger
     
     // If user is registering as tenant, create tenant record
     if (userRole === 'tenant') {
