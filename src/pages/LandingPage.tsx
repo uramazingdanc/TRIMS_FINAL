@@ -144,8 +144,8 @@ const LandingPage = () => {
       <section className="py-24 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-tmis-dark mb-4 animate-fade-in">
-              Tailored For Everyone
+  <h2 className="text-4xl font-bold text-tmis-dark mb-4 animate-fade-in">
+              Features Overview
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-[fade-in_0.5s_ease-out_0.2s_both]">
               Customized features for both administrators and tenants
@@ -256,7 +256,9 @@ const LandingPage = () => {
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 transition-all duration-300 transform hover:scale-105" asChild>
-                    
+                    <Link to="/rules">
+                      View Rules & Regulations
+                    </Link>
                   </Button>
                 </>}
             </div>

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,9 +18,11 @@ import RoomManager from "./pages/admin/RoomManager";
 import MaintenanceRequestsPage from "./pages/admin/Maintenance";
 import TenantDashboard from "./pages/tenant/Dashboard";
 import NotFound from "./pages/NotFound";
+import Rules from "./pages/Rules";
 
 // Layouts
 import { TenantLayout } from "@/components/tenant/TenantLayout";
+import { NotificationSystem } from "@/components/notifications/NotificationSystem";
 
 const queryClient = new QueryClient();
 
@@ -33,12 +34,14 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <NotificationSystem />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Layout />}>
                 <Route index element={<LandingPage />} />
                 <Route path="login" element={<Login />} />
                 <Route path="register" element={<Register />} />
+                <Route path="rules" element={<Rules />} />
               </Route>
               
               {/* Protected Admin Routes */}

@@ -50,8 +50,8 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-tmis-light to-white px-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1">
+      <Card className="w-full max-w-md shadow-lg border-t-4 border-t-tmis-primary">
+        <CardHeader className="space-y-1 pb-4">
           <CardTitle className="text-3xl font-bold text-center text-tmis-primary">TMIS</CardTitle>
           <CardDescription className="text-center">
             Tenant Management and Information System
@@ -66,16 +66,16 @@ const Login = () => {
           )}
           
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-3">
-              <Label>Login as</Label>
+            <div className="space-y-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+              <Label className="text-tmis-dark font-medium">Login as</Label>
               <RadioGroup value={role} onValueChange={(value: 'admin' | 'tenant') => setRole(value)}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="tenant" id="tenant" />
-                  <Label htmlFor="tenant">Tenant</Label>
+                  <Label htmlFor="tenant" className="cursor-pointer">Tenant</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="admin" id="admin" />
-                  <Label htmlFor="admin">Admin</Label>
+                  <Label htmlFor="admin" className="cursor-pointer">Admin</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -113,7 +113,7 @@ const Login = () => {
             
             <Button 
               type="submit" 
-              className="w-full bg-tmis-primary hover:bg-tmis-primary/90" 
+              className="w-full bg-tmis-primary hover:bg-tmis-primary/90 py-6 text-lg font-medium" 
               disabled={isSubmitting}
             >
               {isSubmitting ? (

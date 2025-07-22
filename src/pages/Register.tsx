@@ -177,12 +177,15 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-tmis-light to-white px-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1">
+      <Card className="w-full max-w-md shadow-lg border-t-4 border-t-tmis-primary">
+        <CardHeader className="space-y-1 pb-4">
           <CardTitle className="text-3xl font-bold text-center text-tmis-primary">TMIS</CardTitle>
           <CardDescription className="text-center">
             Create a new account
           </CardDescription>
+          <div className="mt-2 text-center">
+            <Link to="/rules" className="text-xs text-tmis-secondary hover:underline">View Boarding House Rules and Regulations</Link>
+          </div>
         </CardHeader>
         
         <CardContent>
