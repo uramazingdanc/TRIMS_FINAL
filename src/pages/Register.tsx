@@ -156,8 +156,12 @@ const Register = () => {
         });
       }
       
-      // Redirect to tenant dashboard
-      navigate('/tenant/dashboard');
+      // Redirect to appropriate dashboard based on user role
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/tenant/dashboard');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to register');
     } finally {
