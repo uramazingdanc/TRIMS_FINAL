@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Spinner } from '@/components/Spinner';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +36,7 @@ const Register = () => {
     address: '',
     emergencyContact: '',
   });
+  const [role, setRole] = useState<'admin' | 'tenant'>('tenant');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
@@ -76,88 +78,112 @@ const Register = () => {
         throw new Error('User registration failed. No user ID returned.');
       }
       
-      // Create tenant profile in Supabase
-      try {
-        // Find an available room
-        const { data: availableRoom, error: roomError } = await supabase
-          .from('rooms')
-          .select('*')
-          .eq('status', 'available')
-          .limit(1)
-          .single();
-          
-        if (roomError || !availableRoom) {
-          toast({
-            title: "No rooms available",
-            description: "There are no available rooms at the moment. Please contact administration.",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        // Cast to correct type
-        const roomData = availableRoom as RoomsTable;
-        
-        // Create tenant record
-        const tenantData: Partial<TenantsTable> = {
+      // Create user profile in profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: user.id,
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          address: formData.address || '(Not provided)',
-          emergency_contact: formData.emergencyContact || '(Not provided)',
-          lease_start_date: new Date().toISOString().split('T')[0],
-          lease_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-          room_id: roomData.id,
-          // status: 'active', // this field doesn't exist in tenants table
-          payment_status: 'pending',
-          balance: roomData.price_per_month || 0,
-          user_id: user.id
-        };
-        
-        const { error: tenantError } = await supabase
-          .from('tenants')
-          .insert({
-            name: tenantData.name,
-            email: tenantData.email,
-            phone: tenantData.phone,
-            address: tenantData.address,
-            emergency_contact: tenantData.emergency_contact,
-            lease_start_date: tenantData.lease_start_date,
-            lease_end_date: tenantData.lease_end_date,
-            room_id: tenantData.room_id,
-            payment_status: tenantData.payment_status,
-            balance: tenantData.balance,
-            user_id: tenantData.user_id
-          });
-          
-        if (tenantError) throw tenantError;
-        
-        // Update room status
-        const updateRoomData = {
-          status: 'occupied',
-          occupants: (roomData.occupants || 0) + 1
-        };
-        
-        await supabase
-          .from('rooms')
-          .update(updateRoomData)
-          .eq('id', roomData.id);
-        
-        toast({
-          title: "Tenant profile created",
-          description: `Room ${roomData.number} has been assigned to you.`,
+          role: role
         });
-      } catch (error) {
-        console.error("Error creating tenant profile:", error);
+        
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        setError('Failed to create user profile');
+        return;
+      }
+
+      // Only create tenant profile if the role is tenant
+      if (role === 'tenant') {
+        try {
+          // Find an available room
+          const { data: availableRoom, error: roomError } = await supabase
+            .from('rooms')
+            .select('*')
+            .eq('status', 'available')
+            .limit(1)
+            .single();
+            
+          if (roomError || !availableRoom) {
+            toast({
+              title: "No rooms available",
+              description: "There are no available rooms at the moment. Please contact administration.",
+              variant: "destructive"
+            });
+            return;
+          }
+          
+          // Cast to correct type
+          const roomData = availableRoom as RoomsTable;
+          
+          // Create tenant record
+          const tenantData: Partial<TenantsTable> = {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address || '(Not provided)',
+            emergency_contact: formData.emergencyContact || '(Not provided)',
+            lease_start_date: new Date().toISOString().split('T')[0],
+            lease_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+            room_id: roomData.id,
+            payment_status: 'pending',
+            balance: roomData.price_per_month || 0,
+            user_id: user.id
+          };
+          
+          const { error: tenantError } = await supabase
+            .from('tenants')
+            .insert({
+              name: tenantData.name,
+              email: tenantData.email,
+              phone: tenantData.phone,
+              address: tenantData.address,
+              emergency_contact: tenantData.emergency_contact,
+              lease_start_date: tenantData.lease_start_date,
+              lease_end_date: tenantData.lease_end_date,
+              room_id: tenantData.room_id,
+              payment_status: tenantData.payment_status,
+              balance: tenantData.balance,
+              user_id: tenantData.user_id
+            });
+            
+          if (tenantError) throw tenantError;
+          
+          // Update room status
+          const updateRoomData = {
+            status: 'occupied',
+            occupants: (roomData.occupants || 0) + 1
+          };
+          
+          await supabase
+            .from('rooms')
+            .update(updateRoomData)
+            .eq('id', roomData.id);
+          
+          toast({
+            title: "Tenant profile created",
+            description: `Room ${roomData.number} has been assigned to you.`,
+          });
+        } catch (error) {
+          console.error("Error creating tenant profile:", error);
+          toast({
+            title: "Error creating tenant profile",
+            description: error instanceof Error ? error.message : "An unexpected error occurred",
+            variant: "destructive"
+          });
+        }
+      } else {
+        // Admin registration - just show success message
         toast({
-          title: "Error creating tenant profile",
-          description: error instanceof Error ? error.message : "An unexpected error occurred",
-          variant: "destructive"
+          title: "Admin account created",
+          description: "Your admin account has been successfully created.",
         });
       }
       
       // Redirect to appropriate dashboard based on user role
-      if (user.role === 'admin') {
+      if (role === 'admin') {
         navigate('/admin/dashboard');
       } else {
         navigate('/tenant/dashboard');
@@ -175,7 +201,7 @@ const Register = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-3xl font-bold text-center text-tmis-primary">TMIS</CardTitle>
           <CardDescription className="text-center">
-            Create a new tenant account
+            Create a new account
           </CardDescription>
         </CardHeader>
         
@@ -187,6 +213,20 @@ const Register = () => {
           )}
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-3">
+              <Label>Register as</Label>
+              <RadioGroup value={role} onValueChange={(value: 'admin' | 'tenant') => setRole(value)}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="tenant" id="reg-tenant" />
+                  <Label htmlFor="reg-tenant">Tenant</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="admin" id="reg-admin" />
+                  <Label htmlFor="reg-admin">Admin</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input 

@@ -13,11 +13,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Spinner } from '@/components/Spinner';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'admin' | 'tenant'>('tenant');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
@@ -32,8 +34,8 @@ const Login = () => {
       setIsSubmitting(true);
       const user = await login({ email, password });
       
-      // Redirect to appropriate dashboard based on user role
-      if (user.role === 'admin') {
+      // Redirect to appropriate dashboard based on selected role
+      if (role === 'admin') {
         navigate('/admin/dashboard');
       } else {
         navigate('/tenant/dashboard');
@@ -64,6 +66,20 @@ const Login = () => {
           )}
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-3">
+              <Label>Login as</Label>
+              <RadioGroup value={role} onValueChange={(value: 'admin' | 'tenant') => setRole(value)}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="tenant" id="tenant" />
+                  <Label htmlFor="tenant">Tenant</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="admin" id="admin" />
+                  <Label htmlFor="admin">Admin</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input 
