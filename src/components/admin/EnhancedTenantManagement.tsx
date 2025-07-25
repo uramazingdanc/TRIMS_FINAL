@@ -95,7 +95,6 @@ const EnhancedTenantManagement = () => {
           .from('tenants')
           .select(`
             *,
-            profiles(*),
             rooms(*)
           `)
           .order('created_at', { ascending: false }),
@@ -344,7 +343,7 @@ const EnhancedTenantManagement = () => {
           </p>
         </div>
         
-        <Button className="animate-bounce-gentle" asChild>
+        <Button className="animate-bounce-gentle">
           <UserPlus className="h-4 w-4 mr-2" />
           Add New Tenant
         </Button>
