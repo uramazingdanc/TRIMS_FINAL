@@ -204,6 +204,7 @@ const RoomManager = () => {
           .from('rooms')
           .insert({
             number: formData.number,
+            room_number: formData.number,
             floor: formData.floor,
             type: formData.type,
             price_per_month: formData.price_per_month,
