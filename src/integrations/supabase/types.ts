@@ -280,36 +280,90 @@ export type Database = {
           },
         ]
       }
+      room_assignment_logs: {
+        Row: {
+          action: string
+          admin_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          room_id: string
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          room_id: string
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          room_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_assignment_logs_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_assignment_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rooms: {
         Row: {
           created_at: string
+          description: string | null
           floor: string
           id: string
+          max_occupants: number | null
           number: string
           occupants: number
           price_per_month: number
+          room_number: string
           status: string
           type: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          description?: string | null
           floor: string
           id?: string
+          max_occupants?: number | null
           number: string
           occupants?: number
           price_per_month: number
+          room_number: string
           status?: string
           type: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          description?: string | null
           floor?: string
           id?: string
+          max_occupants?: number | null
           number?: string
           occupants?: number
           price_per_month?: number
+          room_number?: string
           status?: string
           type?: string
           updated_at?: string
