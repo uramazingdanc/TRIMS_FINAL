@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { RoomsTable, TenantsTable } from '@/types/supabase';
@@ -96,11 +96,7 @@ const AdminRoomManagement = () => {
   
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchRoomsAndTenants();
-  }, []);
-
-  const fetchRoomsAndTenants = async () => {
+  const fetchRoomsAndTenants = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -143,7 +139,42 @@ const AdminRoomManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchRoomsAndTenants();
+
+    // Set up real-time subscriptions
+    const roomsChannel = supabase
+      .channel('rooms-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rooms'
+        },
+        () => {
+          fetchRoomsAndTenants();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tenants'
+        },
+        () => {
+          fetchRoomsAndTenants();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(roomsChannel);
+    };
+  }, [fetchRoomsAndTenants]);
 
   const handleAddRoom = async () => {
     try {

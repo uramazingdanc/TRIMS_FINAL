@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -54,13 +54,7 @@ const TenantRoomView = () => {
   const [filterPriceRange, setFilterPriceRange] = useState('all');
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (user) {
-      fetchRoomsData();
-    }
-  }, [user]);
-
-  const fetchRoomsData = async () => {
+  const fetchRoomsData = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -114,7 +108,44 @@ const TenantRoomView = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
+
+  useEffect(() => {
+    if (user) {
+      fetchRoomsData();
+
+      // Set up real-time subscriptions
+      const roomsChannel = supabase
+        .channel('tenant-rooms-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'rooms'
+          },
+          () => {
+            fetchRoomsData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'tenants'
+          },
+          () => {
+            fetchRoomsData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(roomsChannel);
+      };
+    }
+  }, [user, fetchRoomsData]);
 
   const getRoomFeatures = (room: RoomWithDetails) => {
     const features = [];
