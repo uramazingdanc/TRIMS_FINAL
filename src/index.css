@@ -5,7 +5,8 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    /* Glassmorphism theme colors */
+    --background: 240 15% 98%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -14,16 +15,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 263 70% 60%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 217.2 91.2% 59.8%;
+    --secondary: 240 20% 95%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
+    --muted: 240 10% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 24.6 95% 53.1%;
+    --accent: 280 65% 60%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -31,31 +32,41 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 263 70% 60%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
-    --sidebar-background: 221.2 83.2% 53.3%;
+    /* Glass effects */
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(263, 70%, 60%) 0%, hsl(280, 65%, 60%) 100%);
+    --gradient-card: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+    
+    --sidebar-background: 263 70% 60%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 210 40% 98%;
     --sidebar-primary-foreground: 222.2 47.4% 11.2%;
-    --sidebar-accent: 214 100% 97%;
+    --sidebar-accent: 240 20% 95%;
     --sidebar-accent-foreground: 222.2 47.4% 11.2%;
-    --sidebar-border: 217.2 91.2% 59.8%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-border: 263 70% 60%;
+    --sidebar-ring: 263 70% 60%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* Dark glassmorphism */
+    --background: 222.2 50% 6%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 222.2 40% 8%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 222.2 40% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217.2 91.2% 59.8%;
+    --primary: 263 70% 70%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -64,7 +75,7 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 24.6 95% 53.1%;
+    --accent: 280 65% 70%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -72,16 +83,25 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 263 70% 70%;
+    
+    /* Dark glass effects */
+    --glass-bg: rgba(17, 25, 40, 0.3);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    
+    /* Dark gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(263, 70%, 70%) 0%, hsl(280, 65%, 70%) 100%);
+    --gradient-card: linear-gradient(135deg, rgba(17, 25, 40, 0.5) 0%, rgba(17, 25, 40, 0.3) 100%);
     
     --sidebar-background: 222.2 47.4% 11.2%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217.2 91.2% 59.8%;
+    --sidebar-primary: 263 70% 70%;
     --sidebar-primary-foreground: 222.2 47.4% 11.2%;
     --sidebar-accent: 217.2 32.6% 17.5%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 263 70% 70%;
   }
 }
 
@@ -92,10 +112,49 @@
 
   body {
     @apply bg-background text-foreground font-inter;
+    background: radial-gradient(ellipse at top, hsl(var(--primary)) 0%, hsl(var(--background)) 50%);
+    min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-montserrat font-semibold;
+  }
+}
+
+@layer components {
+  /* Glass card effect */
+  .glass-card {
+    background: var(--gradient-card);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+  
+  /* Hover animations */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg;
+  }
+  
+  /* Status badges */
+  .status-paid {
+    @apply bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400;
+  }
+  
+  .status-pending {
+    @apply bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400;
+  }
+  
+  .status-overdue {
+    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400;
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
 

@@ -1,8 +1,8 @@
 
-import TenantManagement from '@/components/admin/TenantManagement';
+import EnhancedTenantManagement from '@/components/admin/EnhancedTenantManagement';
 
 const TenantsPage = () => {
-  return <TenantManagement />;
+  return <EnhancedTenantManagement />;
 };
 
 export default TenantsPage;
