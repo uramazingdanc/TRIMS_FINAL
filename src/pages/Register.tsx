@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/types/auth';
 import { 
   Card, 
   CardContent, 
@@ -36,7 +37,7 @@ const Register = () => {
     address: '',
     emergencyContact: '',
   });
-  const [role, setRole] = useState<'admin' | 'tenant'>('tenant');
+  const [role, setRole] = useState<UserRole>('tenant');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
@@ -163,11 +164,14 @@ const Register = () => {
       }
       
       // Redirect to appropriate dashboard based on user role
-      if (role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/tenant/dashboard');
-      }
+      const dashboardPaths: Record<UserRole, string> = {
+        admin: '/admin/dashboard',
+        tenant: '/tenant/dashboard',
+        parent: '/parent/dashboard',
+        staff: '/staff/dashboard',
+        school: '/school/dashboard',
+      };
+      navigate(dashboardPaths[role]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to register');
     } finally {
@@ -198,10 +202,22 @@ const Register = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-3">
               <Label>Register as</Label>
-              <RadioGroup value={role} onValueChange={(value: 'admin' | 'tenant') => setRole(value)}>
+              <RadioGroup value={role} onValueChange={(value: UserRole) => setRole(value)}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="tenant" id="reg-tenant" />
                   <Label htmlFor="reg-tenant">Tenant</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="parent" id="reg-parent" />
+                  <Label htmlFor="reg-parent">Parent/Guardian</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="staff" id="reg-staff" />
+                  <Label htmlFor="reg-staff">Staff</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="school" id="reg-school" />
+                  <Label htmlFor="reg-school">School</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="admin" id="reg-admin" />

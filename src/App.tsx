@@ -22,7 +22,15 @@ import Rules from "./pages/Rules";
 
 // Layouts
 import { TenantLayout } from "@/components/tenant/TenantLayout";
+import { ParentLayout } from "@/components/parent/ParentLayout";
+import { StaffLayout } from "@/components/staff/StaffLayout";
+import { SchoolLayout } from "@/components/school/SchoolLayout";
 import { NotificationSystem } from "@/components/notifications/NotificationSystem";
+
+// Role-specific pages
+import ParentDashboard from "./pages/parent/Dashboard";
+import StaffDashboard from "./pages/staff/Dashboard";
+import SchoolDashboard from "./pages/school/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -60,7 +68,7 @@ const App = () => {
                 <Route path="payments" element={<div className="container mx-auto py-6"><h1 className="text-3xl font-bold">Payments</h1><p className="mt-4">Payment management coming soon.</p></div>} />
               </Route>
               
-              {/* Protected Tenant Routes - Use TenantLayout directly under the SiteHeader */}
+              {/* Protected Tenant Routes */}
               <Route path="tenant" element={
                 <ProtectedRoute allowedRoles={['tenant']}>
                   <Layout />
@@ -72,6 +80,53 @@ const App = () => {
                   <Route path="payments" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Payments</h1><p>Your payment information will appear here. No pending payments at the moment.</p></div>} />
                   <Route path="maintenance" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Maintenance</h1><p>Submit and track maintenance requests here.</p></div>} />
                   <Route path="profile" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Profile</h1><p>Your profile information and settings.</p></div>} />
+                </Route>
+              </Route>
+              
+              {/* Protected Parent Routes */}
+              <Route path="parent" element={
+                <ProtectedRoute allowedRoles={['parent']}>
+                  <Layout />
+                </ProtectedRoute>
+              }>
+                <Route path="*" element={<ParentLayout />}>
+                  <Route index element={<Navigate to="/parent/dashboard" />} />
+                  <Route path="dashboard" element={<ParentDashboard />} />
+                  <Route path="student-info" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Student Information</h1><p>Detailed student information will appear here.</p></div>} />
+                  <Route path="payments" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Payments</h1><p>Payment history and status.</p></div>} />
+                  <Route path="messages" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Messages</h1><p>Communication with management.</p></div>} />
+                </Route>
+              </Route>
+              
+              {/* Protected Staff Routes */}
+              <Route path="staff" element={
+                <ProtectedRoute allowedRoles={['staff']}>
+                  <Layout />
+                </ProtectedRoute>
+              }>
+                <Route path="*" element={<StaffLayout />}>
+                  <Route index element={<Navigate to="/staff/dashboard" />} />
+                  <Route path="dashboard" element={<StaffDashboard />} />
+                  <Route path="maintenance" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Maintenance Requests</h1><p>All maintenance requests.</p></div>} />
+                  <Route path="work-orders" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Work Orders</h1><p>Manage work orders.</p></div>} />
+                  <Route path="facilities" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Facilities</h1><p>Facility management.</p></div>} />
+                  <Route path="reports" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Reports</h1><p>Staff reports.</p></div>} />
+                </Route>
+              </Route>
+              
+              {/* Protected School Routes */}
+              <Route path="school" element={
+                <ProtectedRoute allowedRoles={['school']}>
+                  <Layout />
+                </ProtectedRoute>
+              }>
+                <Route path="*" element={<SchoolLayout />}>
+                  <Route index element={<Navigate to="/school/dashboard" />} />
+                  <Route path="dashboard" element={<SchoolDashboard />} />
+                  <Route path="students" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Students</h1><p>Student housing list.</p></div>} />
+                  <Route path="occupancy" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Occupancy</h1><p>Occupancy tracking.</p></div>} />
+                  <Route path="reports" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Reports</h1><p>Institutional reports.</p></div>} />
+                  <Route path="analytics" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Analytics</h1><p>Analytics and insights.</p></div>} />
                 </Route>
               </Route>
               
