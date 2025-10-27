@@ -19,7 +19,7 @@ export const login = async ({ email, password }: LoginCredentials): Promise<User
       .from('profiles')
       .select('*')
       .eq('id', data.user.id)
-      .single();
+      .maybeSingle();
       
     if (profileError) throw new Error(profileError.message);
     if (!profile) throw new Error('User profile not found');
