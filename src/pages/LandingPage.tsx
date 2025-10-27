@@ -35,7 +35,7 @@ const LandingPage = () => {
             
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-center leading-tight">
               <span className="animate-fade-in inline-block">Tenant</span>{" "}
-              <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent animate-[fade-in_0.5s_ease-out_0.2s_both]">Management</span>{" "}
+              <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent animate-[fade-in_0.5s_ease-out_0.2s_both]">Rental Information and Management</span>{" "}
               <span className="animate-[fade-in_0.5s_ease-out_0.4s_both] inline-block">System</span>
             </h1>
             
