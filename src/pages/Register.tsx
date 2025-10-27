@@ -76,8 +76,8 @@ const Register = () => {
         role: role
       });
 
-      // Only create additional tenant data if the role is tenant and we need extra fields
-      if (role === 'tenant' && (formData.address || formData.emergencyContact)) {
+      // Only create additional tenant data if the role is tenant
+      if (role === 'tenant') {
         try {
           // Find an available room
           const { data: availableRoom, error: roomError } = await supabase
@@ -96,56 +96,35 @@ const Register = () => {
             return;
           }
           
-          // Cast to correct type
           const roomData = availableRoom as RoomsTable;
           
           // Create tenant record
-          const tenantData: Partial<TenantsTable> = {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address || '(Not provided)',
-            emergency_contact: formData.emergencyContact || '(Not provided)',
-            lease_start_date: new Date().toISOString().split('T')[0],
-            lease_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-            room_id: roomData.id,
-            payment_status: 'pending',
-            balance: roomData.price_per_month || 0,
-            user_id: user.id
-          };
-          
           const { error: tenantError } = await supabase
             .from('tenants')
             .insert({
-              name: tenantData.name,
-              email: tenantData.email,
-              phone: tenantData.phone,
-              address: tenantData.address,
-              emergency_contact: tenantData.emergency_contact,
-              lease_start_date: tenantData.lease_start_date,
-              lease_end_date: tenantData.lease_end_date,
-              room_id: tenantData.room_id,
-              payment_status: tenantData.payment_status,
-              balance: tenantData.balance,
-              user_id: tenantData.user_id
+              name: formData.name,
+              email: formData.email,
+              phone: formData.phone,
+              emergency_contact: formData.emergencyContact || '(Not provided)',
+              lease_start: new Date().toISOString().split('T')[0],
+              lease_end: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+              room_id: roomData.id,
+              payment_status: 'pending',
+              balance: roomData.price_per_month || 0,
+              user_id: user.id
             });
             
           if (tenantError) throw tenantError;
           
-          // Update room status
-          const updateRoomData = {
-            status: 'occupied',
-            occupants: (roomData.occupants || 0) + 1
-          };
-          
+          // Update room status to occupied
           await supabase
             .from('rooms')
-            .update(updateRoomData)
+            .update({ status: 'occupied' as any })
             .eq('id', roomData.id);
           
           toast({
             title: "Tenant profile created",
-            description: `Room ${roomData.number} has been assigned to you.`,
+            description: `Room ${roomData.room_number} has been assigned to you.`,
           });
         } catch (error) {
           console.error("Error creating tenant profile:", error);
@@ -263,18 +242,6 @@ const Register = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 required
-                disabled={isSubmitting}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="address">Home Address</Label>
-              <Input 
-                id="address"
-                name="address"
-                placeholder="123 Main St, City"
-                value={formData.address}
-                onChange={handleChange}
                 disabled={isSubmitting}
               />
             </div>

@@ -18,22 +18,29 @@ export const login = async ({ email, password }: LoginCredentials): Promise<User
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('user_id', data.user.id)
+      .eq('id', data.user.id)
       .single();
       
     if (profileError) throw new Error(profileError.message);
     if (!profile) throw new Error('User profile not found');
     
-    // Cast the profile to the correct type
+    // Get user role from user_roles table
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', data.user.id)
+      .maybeSingle();
+    
     const profileData = profile as ProfilesTable;
+    const userRole = (roleData?.role as any) || 'tenant';
     
     // Map Supabase user to our User type with proper type safety
     const user: User = {
       id: data.user.id,
       name: profileData.name,
       email: data.user.email!,
-      role: profileData.role as 'admin' | 'tenant',
-      avatarUrl: undefined, // avatar_url doesn't exist in profiles table
+      role: userRole,
+      avatarUrl: undefined,
     };
     
     return user;
@@ -73,8 +80,8 @@ export const register = async (data: RegisterData): Promise<User> => {
           user_id: authData.user.id,
           name: data.name,
           email: data.email,
-          lease_start_date: new Date().toISOString().split('T')[0],
-          lease_end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 year from now
+          lease_start: new Date().toISOString().split('T')[0],
+          lease_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         });
       
       if (tenantError) {
@@ -103,7 +110,7 @@ export const logout = async (): Promise<void> => {
   try {
     const { error } = await supabase.auth.signOut();
     if (error) throw new Error(error.message);
-    localStorage.removeItem('tmis_user');
+    localStorage.removeItem('trims_user');
   } catch (error) {
     console.error('Logout error:', error);
     throw error;
@@ -113,7 +120,7 @@ export const logout = async (): Promise<void> => {
 export const getCurrentUser = (): User | null => {
   try {
     // First check local storage (for backward compatibility)
-    const userStr = localStorage.getItem('tmis_user');
+    const userStr = localStorage.getItem('trims_user');
     if (userStr) {
       return JSON.parse(userStr);
     }

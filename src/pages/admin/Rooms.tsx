@@ -63,7 +63,7 @@ const RoomsPage = () => {
   };
 
   const filteredRooms = roomsList.filter(room => 
-    room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    room.room_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     room.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -139,13 +139,13 @@ const RoomsPage = () => {
               {filteredRooms.length > 0 ? (
                 filteredRooms.map((room) => (
                   <TableRow key={room.id}>
-                    <TableCell className="font-medium">{room.number}</TableCell>
+                    <TableCell className="font-medium">{room.room_number}</TableCell>
                     <TableCell>{room.floor}</TableCell>
                     <TableCell className="capitalize">{room.type}</TableCell>
                     <TableCell>
                       {room.type === 'single' ? 1 : room.type === 'double' ? 2 : 3}
                     </TableCell>
-                    <TableCell>{room.occupants}</TableCell>
+                    <TableCell>{room.max_occupants}</TableCell>
                     <TableCell>₱{room.price_per_month.toLocaleString()}</TableCell>
                     <TableCell>{getRoomStatusBadge(room.status)}</TableCell>
                     <TableCell className="text-right">

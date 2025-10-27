@@ -17,7 +17,8 @@ export interface Tenant {
 
 export interface Room {
   id: string;
-  number: string;
+  room_number?: string;
+  number: string;  // Keep for backward compatibility
   floor: number;
   capacity: number;
   occupants: number;

@@ -319,7 +319,7 @@ const TenantManagement = () => {
                                   .filter(room => room.status === 'available')
                                   .map((room) => (
                                     <SelectItem key={room.id} value={room.id}>
-                                      {room.number}
+                                      {room.room_number}
                                     </SelectItem>
                                   ))}
                               </SelectContent>

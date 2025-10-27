@@ -108,7 +108,7 @@ const RoomManager = () => {
   };
 
   const filteredRooms = rooms.filter(room => 
-    room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    room.room_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     room.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
     room.floor.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -170,8 +170,8 @@ const RoomManager = () => {
         const { data: existingRoom } = await supabase
           .from('rooms')
           .select('id')
-          .eq('number', formData.number)
-          .single();
+          .eq('room_number', formData.number)
+          .maybeSingle();
           
         if (existingRoom) {
           setFormErrors({ number: 'Room with this number already exists' });
@@ -184,11 +184,11 @@ const RoomManager = () => {
         const { error } = await supabase
           .from('rooms')
           .update({
-            number: formData.number,
+            room_number: formData.number,
             floor: formData.floor,
-            type: formData.type,
+            type: formData.type as any,
             price_per_month: formData.price_per_month,
-            status: formData.status
+            status: formData.status as any
           })
           .eq('id', currentRoom.id);
           
@@ -203,13 +203,11 @@ const RoomManager = () => {
         const { error } = await supabase
           .from('rooms')
           .insert({
-            number: formData.number,
             room_number: formData.number,
             floor: formData.floor,
-            type: formData.type,
+            type: formData.type as any,
             price_per_month: formData.price_per_month,
-            status: formData.status,
-            occupants: 0
+            status: formData.status as any,
           });
           
         if (error) throw error;
@@ -244,7 +242,7 @@ const RoomManager = () => {
   const handleEditRoom = (room: RoomsTable) => {
     setCurrentRoom(room);
     setFormData({
-      number: room.number,
+      number: room.room_number,
       floor: room.floor,
       type: room.type,
       price_per_month: room.price_per_month,
@@ -255,7 +253,7 @@ const RoomManager = () => {
   };
 
   const handleDeleteRoom = async (room: RoomsTable) => {
-    if (!confirm(`Are you sure you want to delete room ${room.number}?`)) {
+    if (!confirm(`Are you sure you want to delete room ${room.room_number}?`)) {
       return;
     }
     
@@ -286,7 +284,7 @@ const RoomManager = () => {
       
       toast({
         title: 'Success',
-        description: `Room ${room.number} has been deleted.`,
+        description: `Room ${room.room_number} has been deleted.`,
       });
       
       fetchRooms();
@@ -384,10 +382,10 @@ const RoomManager = () => {
                 {filteredRooms.length > 0 ? (
                   filteredRooms.map((room) => (
                     <TableRow key={room.id}>
-                      <TableCell className="font-medium">{room.number}</TableCell>
+                      <TableCell className="font-medium">{room.room_number}</TableCell>
                       <TableCell>{room.floor}</TableCell>
                       <TableCell className="capitalize">{room.type}</TableCell>
-                      <TableCell>{room.occupants}</TableCell>
+                      <TableCell>{room.max_occupants}</TableCell>
                       <TableCell>₱{room.price_per_month.toLocaleString()}</TableCell>
                       <TableCell>{getRoomStatusBadge(room.status)}</TableCell>
                       <TableCell>
@@ -395,7 +393,7 @@ const RoomManager = () => {
                           <div className="flex flex-wrap gap-1">
                             {amenities[room.id].map((amenity) => (
                               <Badge key={amenity.id} variant="outline" className="text-xs">
-                                {amenity.amenity_name}
+                                {amenity.amenity}
                               </Badge>
                             ))}
                           </div>

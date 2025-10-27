@@ -64,7 +64,7 @@ const MaintenanceRequestsPage = () => {
 
   const getRoomNumber = (roomId: string) => {
     const room = rooms.find(r => r.id === roomId);
-    return room ? room.number : 'Unknown';
+    return room ? room.room_number : 'Unknown';
   };
 
   const getPriorityBadge = (priority: string) => {

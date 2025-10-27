@@ -134,7 +134,7 @@ const EnhancedTenantManagement = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const updatePaymentStatus = async (tenantId: string, newStatus: string) => {
+  const updatePaymentStatus = async (tenantId: string, newStatus: 'paid' | 'pending' | 'overdue') => {
     try {
       const { error } = await supabase
         .from('tenants')
@@ -485,8 +485,8 @@ const EnhancedTenantManagement = () => {
                       
                       <TableCell>
                         <div className="text-sm">
-                          <p>{new Date(tenant.lease_start_date).toLocaleDateString()}</p>
-                          <p className="text-muted-foreground">to {new Date(tenant.lease_end_date).toLocaleDateString()}</p>
+                          <p>{tenant.lease_start ? new Date(tenant.lease_start).toLocaleDateString() : 'N/A'}</p>
+                          <p className="text-muted-foreground">to {tenant.lease_end ? new Date(tenant.lease_end).toLocaleDateString() : 'N/A'}</p>
                         </div>
                       </TableCell>
                       

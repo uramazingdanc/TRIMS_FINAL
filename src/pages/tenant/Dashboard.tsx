@@ -98,7 +98,7 @@ const TenantDashboard = () => {
   const calculateDaysUntilDue = () => {
     if (!tenantPayments || tenantPayments.length === 0) return null;
     
-    const nextPayment = tenantPayments.find(p => p.status === 'pending');
+    const nextPayment = tenantPayments.find(p => p.payment_date);
     if (!nextPayment) return null;
     
     const dueDate = new Date(nextPayment.payment_date);
@@ -170,7 +170,7 @@ const TenantDashboard = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Room Number</span>
-                  <span className="font-medium">{room?.number || 'Not assigned'}</span>
+                  <span className="font-medium">{room?.room_number || 'Not assigned'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Type</span>
@@ -199,9 +199,9 @@ const TenantDashboard = () => {
                   <span className="text-sm font-medium">Lease Period</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span>{tenant.lease_start_date}</span>
+                  <span>{tenant.lease_start || 'N/A'}</span>
                   <span>to</span>
-                  <span>{tenant.lease_end_date}</span>
+                  <span>{tenant.lease_end || 'N/A'}</span>
                 </div>
                 <Progress
                   value={50} // Replace with actual progress calculation
