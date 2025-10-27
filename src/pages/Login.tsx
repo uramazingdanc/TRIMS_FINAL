@@ -19,7 +19,7 @@ import { Spinner } from '@/components/Spinner';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'admin' | 'tenant' | 'parent' | 'staff' | 'school'>('tenant');
+  const [role, setRole] = useState<'admin' | 'tenant' | 'parent' | 'staff' | 'school'>('admin');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
@@ -84,10 +84,6 @@ const Login = () => {
               <Label className="text-tmis-dark font-medium">Login as</Label>
               <RadioGroup value={role} onValueChange={(value: any) => setRole(value)}>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="tenant" id="tenant" />
-                  <Label htmlFor="tenant" className="cursor-pointer">Tenant</Label>
-                </div>
-                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="admin" id="admin" />
                   <Label htmlFor="admin" className="cursor-pointer">Admin</Label>
                 </div>
@@ -96,12 +92,16 @@ const Login = () => {
                   <Label htmlFor="parent" className="cursor-pointer">Parent/Guardian</Label>
                 </div>
                 <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="school" id="school" />
+                  <Label htmlFor="school" className="cursor-pointer">School</Label>
+                </div>
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="staff" id="staff" />
                   <Label htmlFor="staff" className="cursor-pointer">Staff</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="school" id="school" />
-                  <Label htmlFor="school" className="cursor-pointer">School</Label>
+                  <RadioGroupItem value="tenant" id="tenant" />
+                  <Label htmlFor="tenant" className="cursor-pointer">Tenant</Label>
                 </div>
               </RadioGroup>
             </div>
