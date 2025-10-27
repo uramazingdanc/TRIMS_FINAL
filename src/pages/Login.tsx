@@ -19,7 +19,7 @@ import { Spinner } from '@/components/Spinner';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'admin' | 'tenant'>('tenant');
+  const [role, setRole] = useState<'admin' | 'tenant' | 'parent' | 'staff' | 'school'>('tenant');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
@@ -35,10 +35,24 @@ const Login = () => {
       const user = await login({ email, password });
       
       // Redirect to appropriate dashboard based on selected role
-      if (role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/tenant/dashboard');
+      switch (role) {
+        case 'admin':
+          navigate('/admin/dashboard');
+          break;
+        case 'tenant':
+          navigate('/tenant/dashboard');
+          break;
+        case 'parent':
+          navigate('/parent/dashboard');
+          break;
+        case 'staff':
+          navigate('/staff/dashboard');
+          break;
+        case 'school':
+          navigate('/school/dashboard');
+          break;
+        default:
+          navigate('/tenant/dashboard');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to login');
@@ -68,7 +82,7 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
               <Label className="text-tmis-dark font-medium">Login as</Label>
-              <RadioGroup value={role} onValueChange={(value: 'admin' | 'tenant') => setRole(value)}>
+              <RadioGroup value={role} onValueChange={(value: any) => setRole(value)}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="tenant" id="tenant" />
                   <Label htmlFor="tenant" className="cursor-pointer">Tenant</Label>
@@ -76,6 +90,18 @@ const Login = () => {
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="admin" id="admin" />
                   <Label htmlFor="admin" className="cursor-pointer">Admin</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="parent" id="parent" />
+                  <Label htmlFor="parent" className="cursor-pointer">Parent/Guardian</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="staff" id="staff" />
+                  <Label htmlFor="staff" className="cursor-pointer">Staff</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="school" id="school" />
+                  <Label htmlFor="school" className="cursor-pointer">School</Label>
                 </div>
               </RadioGroup>
             </div>
