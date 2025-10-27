@@ -124,7 +124,7 @@ export default function ParentDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${roomDetails?.price_per_month || '0'}
+              ₱{roomDetails?.price_per_month || '0'}
             </div>
             <p className="text-xs text-muted-foreground">Per month</p>
           </CardContent>
@@ -192,7 +192,7 @@ export default function ParentDashboard() {
               payments.map((payment) => (
                 <div key={payment.id} className="flex items-center justify-between border-b pb-2">
                   <div>
-                    <p className="font-medium">${payment.amount}</p>
+                    <p className="font-medium">₱{payment.amount}</p>
                     <p className="text-xs text-muted-foreground">
                       Due: {new Date(payment.due_date).toLocaleDateString()}
                     </p>

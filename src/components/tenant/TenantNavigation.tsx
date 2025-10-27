@@ -4,7 +4,8 @@ import {
   LayoutDashboard, 
   CreditCard, 
   Wrench, 
-  User 
+  User,
+  FileText
 } from 'lucide-react';
 
 const menuItems = [
@@ -12,6 +13,11 @@ const menuItems = [
     name: 'Dashboard',
     path: '/tenant/dashboard',
     icon: LayoutDashboard
+  },
+  {
+    name: 'Apply for Room',
+    path: '/tenant/apply-room',
+    icon: FileText
   },
   {
     name: 'Payments',
