@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               });
 
               // Save to localStorage for backward compatibility
-              localStorage.setItem('tmis_user', JSON.stringify(user));
+              localStorage.setItem('trims_user', JSON.stringify(user));
             } else {
               // Handle case where profile doesn't exist yet
               setState({
@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
           }
         } else if (event === 'SIGNED_OUT') {
-          localStorage.removeItem('tmis_user');
+          localStorage.removeItem('trims_user');
           setState({
             user: null,
             isAuthenticated: false,
@@ -117,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
 
             // Save to localStorage for backward compatibility
-            localStorage.setItem('tmis_user', JSON.stringify(user));
+            localStorage.setItem('trims_user', JSON.stringify(user));
           } else {
             setState({
               user: null,
@@ -190,7 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast({
         title: "Registration successful",
-        description: `Welcome to TMIS, ${user.name}!`,
+        description: `Welcome to TRIMS, ${user.name}!`,
       });
       
       return user;

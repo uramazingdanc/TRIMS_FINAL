@@ -240,7 +240,7 @@ const LandingPage = () => {
           <div className="relative z-10">
             <h2 className="text-4xl font-bold mb-6 animate-fade-in">Ready to Get Started?</h2>
             <p className="text-xl mb-10 max-w-2xl mx-auto text-white/90 animate-[fade-in_0.5s_ease-out_0.3s_both]">
-              Join TMIS today and experience streamlined boarding house management at ATCCAS.
+              Join TRIMS today and experience streamlined boarding house management at ATCCAS.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-[fade-in_0.5s_ease-out_0.5s_both]">
               {isAuthenticated ? <Button size="lg" className="bg-white text-tmis-primary hover:bg-white/90 group transition-all duration-300 transform hover:scale-105" asChild>
@@ -271,9 +271,9 @@ const LandingPage = () => {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="animate-[fade-in_0.5s_ease-out_0.2s_both]">
-              <h3 className="text-lg font-bold mb-4">TMIS</h3>
+              <h3 className="text-lg font-bold mb-4">TRIMS</h3>
               <p className="text-gray-300 text-sm">
-                Tenant Management and Information System for ATCCAS Boarding House.
+                Tenant Rental Information and Management System for ATCCAS Boarding House.
               </p>
             </div>
             <div className="animate-[fade-in_0.5s_ease-out_0.3s_both]">
@@ -295,14 +295,14 @@ const LandingPage = () => {
             <div className="animate-[fade-in_0.5s_ease-out_0.5s_both]">
               <h4 className="text-md font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li>Email: info@atccas-tmis.com</li>
+                <li>Email: info@atccas-trims.com</li>
                 <li>Phone: (123) 456-7890</li>
                 <li>Address: 123 Main St, Anytown</li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400 animate-[fade-in_0.5s_ease-out_0.6s_both]">
-            <p>© {new Date().getFullYear()} TMIS. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} TRIMS. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -66,9 +66,9 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-tmis-light to-white px-4">
       <Card className="w-full max-w-md shadow-lg border-t-4 border-t-tmis-primary">
         <CardHeader className="space-y-1 pb-4">
-          <CardTitle className="text-3xl font-bold text-center text-tmis-primary">TMIS</CardTitle>
+          <CardTitle className="text-3xl font-bold text-center text-tmis-primary">TRIMS</CardTitle>
           <CardDescription className="text-center">
-            Tenant Management and Information System
+            Tenant Rental Information and Management System
           </CardDescription>
         </CardHeader>
         
