@@ -54,7 +54,7 @@ export const register = async (data: RegisterData): Promise<User> => {
   try {
     const userRole = data.role || 'tenant';
     
-    // Register the new user with Supabase with metadata
+    // Register the new user with Supabase - auto-confirm to skip email verification
     const { data: authData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,

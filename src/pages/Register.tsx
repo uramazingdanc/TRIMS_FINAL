@@ -183,24 +183,24 @@ const Register = () => {
               <Label>Register as</Label>
               <RadioGroup value={role} onValueChange={(value: UserRole) => setRole(value)}>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="tenant" id="reg-tenant" />
-                  <Label htmlFor="reg-tenant">Tenant</Label>
+                  <RadioGroupItem value="admin" id="reg-admin" />
+                  <Label htmlFor="reg-admin">Admin</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="parent" id="reg-parent" />
                   <Label htmlFor="reg-parent">Parent/Guardian</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="staff" id="reg-staff" />
-                  <Label htmlFor="reg-staff">Staff</Label>
-                </div>
-                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="school" id="reg-school" />
                   <Label htmlFor="reg-school">School</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="admin" id="reg-admin" />
-                  <Label htmlFor="reg-admin">Admin</Label>
+                  <RadioGroupItem value="staff" id="reg-staff" />
+                  <Label htmlFor="reg-staff">Staff</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="tenant" id="reg-tenant" />
+                  <Label htmlFor="reg-tenant">Tenant</Label>
                 </div>
               </RadioGroup>
             </div>
