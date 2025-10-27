@@ -101,7 +101,7 @@ const EnhancedTenantManagement = () => {
         supabase
           .from('rooms')
           .select('*')
-          .order('number', { ascending: true })
+          .order('room_number', { ascending: true })
       ]);
 
       if (tenantsRes.error) throw tenantsRes.error;
@@ -191,7 +191,6 @@ const EnhancedTenantManagement = () => {
           amount: amount,
           payment_date: new Date().toISOString().split('T')[0],
           payment_method: 'cash',
-          status: 'paid'
         });
 
       if (paymentError) throw paymentError;
@@ -235,15 +234,8 @@ const EnhancedTenantManagement = () => {
 
       if (tenantError) throw tenantError;
 
-      const { error: roomError } = await supabase
-        .from('rooms')
-        .update({ 
-          status: 'occupied',
-          occupants: room.occupants + 1
-        })
-        .eq('id', roomId);
-
-      if (roomError) throw roomError;
+      // Refresh lists instead of manual room occupancy updates
+      await fetchTenantsAndRooms();
 
       // Update local state
       setTenants(tenants.map(tenant => 
@@ -252,15 +244,9 @@ const EnhancedTenantManagement = () => {
           : tenant
       ));
 
-      setRooms(rooms.map(r => 
-        r.id === roomId 
-          ? { ...r, status: 'occupied', occupants: r.occupants + 1 }
-          : r
-      ));
-
       toast({
         title: '🏠 Room assigned successfully!',
-        description: `Tenant assigned to Room ${room.number}. Nice work! ✨`,
+        description: `Tenant assigned to Room ${room.room_number}. Nice work! ✨`,
       });
     } catch (error) {
       console.error('Error assigning room:', error);
@@ -303,7 +289,7 @@ const EnhancedTenantManagement = () => {
   };
 
   const getRoomDisplay = (tenant: TenantWithProfile) => {
-    return tenant.rooms?.number || (
+    return tenant.rooms?.room_number || (
       <Select onValueChange={(value) => assignRoom(tenant.id, value)}>
         <SelectTrigger className="w-32">
           <SelectValue placeholder="Assign" />
@@ -313,7 +299,7 @@ const EnhancedTenantManagement = () => {
             .filter(room => room.status === 'available')
             .map(room => (
               <SelectItem key={room.id} value={room.id}>
-                Room {room.number}
+                Room {room.room_number}
               </SelectItem>
             ))}
         </SelectContent>
@@ -461,10 +447,10 @@ const EnhancedTenantManagement = () => {
                       </TableCell>
                       
                       <TableCell>
-                        <Select 
-                          value={tenant.payment_status} 
-                          onValueChange={(value) => updatePaymentStatus(tenant.id, value)}
-                        >
+                          <Select 
+                            value={tenant.payment_status} 
+                            onValueChange={(value) => updatePaymentStatus(tenant.id, value as 'paid' | 'pending' | 'overdue')}
+                          >
                           <SelectTrigger className="w-32">
                             <SelectValue />
                           </SelectTrigger>

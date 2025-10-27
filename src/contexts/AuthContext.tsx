@@ -27,25 +27,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
           try {
-            // Get user profile data
             const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('*')
-              .eq('user_id', session.user.id)
+              .eq('id', session.user.id)
               .single();
 
             if (profileError) throw profileError;
 
+            // Fetch role from user_roles
+            const { data: roleData } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+
             if (profileData) {
-              // Cast to correct type
               const profile = profileData as ProfilesTable;
-              
+              const userRole = (roleData?.role as any) || 'tenant';
               const user: User = {
                 id: session.user.id,
                 email: session.user.email!,
                 name: profile.name || '',
-                role: profile.role as 'admin' | 'tenant',
-                avatarUrl: undefined, // avatar_url doesn't exist in profiles table
+                role: userRole,
+                avatarUrl: undefined,
               };
 
               setState({
@@ -89,25 +94,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session) {
-          // Get user profile data
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
-            .eq('user_id', session.user.id)
+            .eq('id', session.user.id)
             .single();
 
           if (profileError) throw profileError;
 
+          // Fetch role
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
           if (profileData) {
-            // Cast to correct type
             const profile = profileData as ProfilesTable;
-            
+            const userRole = (roleData?.role as any) || 'tenant';
             const user: User = {
               id: session.user.id,
               email: session.user.email!,
               name: profile.name || '',
-              role: profile.role as 'admin' | 'tenant',
-              avatarUrl: undefined, // avatar_url doesn't exist in profiles table
+              role: userRole,
+              avatarUrl: undefined,
             };
 
             setState({

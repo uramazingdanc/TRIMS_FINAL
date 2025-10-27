@@ -125,10 +125,8 @@ const AdminDashboard = () => {
       // Calculate stats
       const occupiedUnits = rooms.filter(room => room.status === 'occupied').length;
       const vacantUnits = rooms.filter(room => room.status === 'available').length;
-      const totalRevenue = payments
-        .filter(p => p.status === 'paid')
-        .reduce((sum, p) => sum + Number(p.amount), 0);
-      const pendingPayments = payments.filter(p => p.status === 'pending').length;
+      const totalRevenue = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+      const pendingPayments = tenants.filter(t => t.payment_status === 'pending').length;
       const maintenanceRequests = maintenance.filter(m => m.status === 'pending').length;
       const occupancyRate = rooms.length > 0 ? (occupiedUnits / rooms.length) * 100 : 0;
 

@@ -183,12 +183,11 @@ const AdminRoomManagement = () => {
         .insert({
           room_number: roomForm.room_number,
           floor: roomForm.floor,
-          type: roomForm.type,
+          type: roomForm.type as any,
           price_per_month: parseFloat(roomForm.price_per_month),
           description: roomForm.description,
           max_occupants: roomForm.max_occupants,
           status: 'available',
-          number: roomForm.room_number // Keep compatibility with existing number field
         });
 
       if (error) throw error;
@@ -228,11 +227,10 @@ const AdminRoomManagement = () => {
         .update({
           room_number: roomForm.room_number,
           floor: roomForm.floor,
-          type: roomForm.type,
+          type: roomForm.type as any,
           price_per_month: parseFloat(roomForm.price_per_month),
           description: roomForm.description,
           max_occupants: roomForm.max_occupants,
-          number: roomForm.room_number // Keep compatibility
         })
         .eq('id', selectedRoom.id);
 

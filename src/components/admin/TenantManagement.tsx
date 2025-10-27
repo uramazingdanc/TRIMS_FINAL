@@ -80,7 +80,7 @@ const TenantManagement = () => {
       const { data: roomsData, error: roomsError } = await supabase
         .from('rooms')
         .select('*')
-        .order('number', { ascending: true });
+        .order('room_number', { ascending: true });
 
       if (roomsError) throw roomsError;
 
@@ -159,7 +159,6 @@ const TenantManagement = () => {
           amount: amount,
           payment_date: new Date().toISOString().split('T')[0],
           payment_method: 'cash',
-          status: 'paid'
         });
 
       await fetchTenantsAndRooms();
@@ -191,18 +190,7 @@ const TenantManagement = () => {
 
       if (tenantError) throw tenantError;
 
-      // Update room occupancy
-      const room = rooms.find(r => r.id === roomId);
-      if (room) {
-        await supabase
-          .from('rooms')
-          .update({ 
-            occupants: room.occupants + 1,
-            status: room.occupants + 1 >= getMaxOccupants(room.type) ? 'occupied' : 'available'
-          })
-          .eq('id', roomId);
-      }
-
+      // Update room occupancy (removed occupants column)
       await fetchTenantsAndRooms();
       
       toast({
@@ -253,7 +241,7 @@ const TenantManagement = () => {
   };
 
   const getRoomDisplay = (tenant: TenantWithProfile) => {
-    return tenant.rooms ? tenant.rooms.number : 'Not assigned';
+    return tenant.rooms ? tenant.rooms.room_number : 'Not assigned';
   };
 
   return (
@@ -381,8 +369,8 @@ const TenantManagement = () => {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <div>From: {tenant.lease_start_date}</div>
-                          <div>To: {tenant.lease_end_date}</div>
+                          <div>From: {tenant.lease_start}</div>
+                          <div>To: {tenant.lease_end}</div>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">

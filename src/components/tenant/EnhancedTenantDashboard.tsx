@@ -187,7 +187,8 @@ const EnhancedTenantDashboard = () => {
       const openTickets = maintenance?.filter(m => m.status !== 'resolved').length || 0;
       
       // Calculate lease days left
-      const leaseEndDate = new Date(tenantData.lease_end_date);
+      const leaseEndDateStr = tenantData.lease_end || new Date().toISOString();
+      const leaseEndDate = new Date(leaseEndDateStr);
       const today = new Date();
       const daysLeft = Math.ceil((leaseEndDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -205,9 +206,9 @@ const EnhancedTenantDashboard = () => {
         },
         openTickets,
         leaseInfo: {
-          startDate: tenantData.lease_start_date,
-          endDate: tenantData.lease_end_date,
-          unit: tenantData.rooms?.number || 'Not assigned',
+          startDate: tenantData.lease_start || '',
+          endDate: tenantData.lease_end || '',
+          unit: tenantData.rooms?.room_number || 'Not assigned',
           status: tenantData.payment_status,
           daysLeft
         }

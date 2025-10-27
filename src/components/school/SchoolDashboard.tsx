@@ -46,8 +46,7 @@ export default function SchoolDashboard() {
       // Fetch payments for revenue calculation
       const { data: payments, error: paymentsError } = await supabase
         .from('payments')
-        .select('amount, status')
-        .eq('status', 'paid');
+        .select('amount');
 
       if (paymentsError) throw paymentsError;
 
