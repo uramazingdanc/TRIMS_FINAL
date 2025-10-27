@@ -255,7 +255,7 @@ const LandingPage = () => {
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </Button>
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 transition-all duration-300 transform hover:scale-105" asChild>
+                  <Button size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm" asChild>
                     <Link to="/rules">
                       View Rules & Regulations
                     </Link>
