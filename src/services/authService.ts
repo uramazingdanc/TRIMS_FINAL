@@ -24,15 +24,16 @@ export const login = async ({ email, password }: LoginCredentials): Promise<User
     if (profileError) throw new Error(profileError.message);
     if (!profile) throw new Error('User profile not found');
     
-    // Get user role from user_roles table
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', data.user.id)
-      .maybeSingle();
+    // Get user role using secure RPC function
+    const { data: roleData, error: roleError } = await (supabase as any)
+      .rpc('current_user_role');
+    
+    if (roleError) {
+      console.error('Error fetching role:', roleError);
+    }
     
     const profileData = profile as ProfilesTable;
-    const userRole = (roleData?.role as any) || 'tenant';
+    const userRole = (roleData as any) || 'tenant';
     
     // Map Supabase user to our User type with proper type safety
     const user: User = {

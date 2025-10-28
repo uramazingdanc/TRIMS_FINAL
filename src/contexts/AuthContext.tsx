@@ -22,61 +22,72 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Set up auth state listener FIRST - MUST be synchronous to avoid deadlocks
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          try {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .maybeSingle();
+          // Synchronously update state with basic session info
+          setState({
+            user: null,
+            isAuthenticated: true,
+            isLoading: true,
+          });
 
-            if (profileError) throw profileError;
+          // Defer Supabase queries to avoid deadlock
+          setTimeout(async () => {
+            try {
+              const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
 
-            // Fetch role from user_roles
-            const { data: roleData } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
+              if (profileError) throw profileError;
 
-            if (profileData) {
-              const profile = profileData as ProfilesTable;
-              const userRole = (roleData?.role as any) || 'tenant';
-              const user: User = {
-                id: session.user.id,
-                email: session.user.email!,
-                name: profile.name || '',
-                role: userRole,
-                avatarUrl: undefined,
-              };
+              // Use the secure RPC function to get role
+              const { data: roleData, error: roleError } = await (supabase as any)
+                .rpc('current_user_role');
 
-              setState({
-                user,
-                isAuthenticated: true,
-                isLoading: false,
-              });
+              if (roleError) {
+                console.error('Error fetching role:', roleError);
+              }
 
-              // Save to localStorage for backward compatibility
-              localStorage.setItem('trims_user', JSON.stringify(user));
-            } else {
-              // Handle case where profile doesn't exist yet
+              if (profileData) {
+                const profile = profileData as ProfilesTable;
+                const userRole = (roleData as any) || 'tenant';
+                const user: User = {
+                  id: session.user.id,
+                  email: session.user.email!,
+                  name: profile.name || '',
+                  role: userRole,
+                  avatarUrl: undefined,
+                };
+
+                setState({
+                  user,
+                  isAuthenticated: true,
+                  isLoading: false,
+                });
+
+                // Save to localStorage for backward compatibility
+                localStorage.setItem('trims_user', JSON.stringify(user));
+              } else {
+                // Handle case where profile doesn't exist yet
+                setState({
+                  user: null,
+                  isAuthenticated: false,
+                  isLoading: false,
+                });
+              }
+            } catch (error) {
+              console.error('Error getting user profile:', error);
               setState({
                 user: null,
                 isAuthenticated: false,
                 isLoading: false,
               });
             }
-          } catch (error) {
-            console.error('Error getting user profile:', error);
-            setState({
-              user: null,
-              isAuthenticated: false,
-              isLoading: false,
-            });
-          }
+          }, 0);
         } else if (event === 'SIGNED_OUT') {
           localStorage.removeItem('trims_user');
           setState({
@@ -102,16 +113,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (profileError) throw profileError;
 
-          // Fetch role
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
+          // Use the secure RPC function to get role
+          const { data: roleData, error: roleError } = await (supabase as any)
+            .rpc('current_user_role');
+
+          if (roleError) {
+            console.error('Error fetching role:', roleError);
+          }
 
           if (profileData) {
             const profile = profileData as ProfilesTable;
-            const userRole = (roleData?.role as any) || 'tenant';
+            const userRole = (roleData as any) || 'tenant';
             const user: User = {
               id: session.user.id,
               email: session.user.email!,
