@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/Spinner';
-import { Users, Home, TrendingUp, DollarSign } from 'lucide-react';
+import { Users, Home, TrendingUp, Building } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 export default function SchoolDashboard() {
@@ -14,7 +14,6 @@ export default function SchoolDashboard() {
     occupiedRooms: 0,
     availableRooms: 0,
     occupancyRate: 0,
-    totalRevenue: 0,
   });
   const [roomTypeData, setRoomTypeData] = useState<any[]>([]);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
@@ -43,27 +42,18 @@ export default function SchoolDashboard() {
 
       if (roomsError) throw roomsError;
 
-      // Fetch payments for revenue calculation
-      const { data: payments, error: paymentsError } = await supabase
-        .from('payments')
-        .select('amount');
-
-      if (paymentsError) throw paymentsError;
-
       // Calculate stats
       const totalStudents = tenants?.length || 0;
       const occupiedRooms = rooms?.filter((r) => r.status === 'occupied').length || 0;
       const availableRooms = rooms?.filter((r) => r.status === 'available').length || 0;
       const totalRooms = rooms?.length || 1;
       const occupancyRate = Math.round((occupiedRooms / totalRooms) * 100);
-      const totalRevenue = payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
 
       setStats({
         totalStudents,
         occupiedRooms,
         availableRooms,
         occupancyRate,
-        totalRevenue,
       });
 
       // Room type distribution
@@ -154,12 +144,12 @@ export default function SchoolDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Rooms</CardTitle>
+            <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₱{stats.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Collected payments</p>
+            <div className="text-2xl font-bold">{stats.occupiedRooms + stats.availableRooms}</div>
+            <p className="text-xs text-muted-foreground">Total housing capacity</p>
           </CardContent>
         </Card>
       </div>
