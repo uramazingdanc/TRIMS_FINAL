@@ -54,10 +54,17 @@ const TenantDashboard = () => {
         .from('tenants')
         .select('*, rooms(*)')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (tenantError) {
-        console.error('Tenant not found:', tenantError);
+        console.error('Error fetching tenant:', tenantError);
+        setLoading(false);
+        return;
+      }
+
+      if (!tenantData) {
+        // User doesn't have a tenant record yet
+        setLoading(false);
         return;
       }
 
@@ -116,7 +123,7 @@ const TenantDashboard = () => {
 
   const dueInfo = calculateDaysUntilDue();
 
-  if (loading || !tenant) {
+  if (loading) {
     return (
       <div className="container mx-auto py-8">
         <div className="text-center">
@@ -124,6 +131,26 @@ const TenantDashboard = () => {
           <p className="text-muted-foreground">Please wait while we retrieve your information.</p>
         </div>
       </div>
+    );
+  }
+
+  if (!tenant) {
+    return (
+      <>
+        <TenantNavigation />
+        <div className="container mx-auto py-8">
+          <Card>
+            <CardContent className="py-12 text-center">
+              <HomeIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h2 className="text-xl font-medium mb-2">No Tenant Record Found</h2>
+              <p className="text-muted-foreground mb-4">You don't have a tenant record yet. Please apply for a room to get started.</p>
+              <Button asChild>
+                <Link to="/tenant/apply-room">Apply for Room</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     );
   }
 

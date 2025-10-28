@@ -104,7 +104,7 @@ export default function PaymentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ₦{tenantData?.balance?.toLocaleString() || '0.00'}
+              ₱{tenantData?.balance?.toLocaleString() || '0.00'}
             </div>
           </CardContent>
         </Card>
@@ -159,7 +159,7 @@ export default function PaymentsPage() {
                       {format(new Date(payment.payment_date), 'MMM dd, yyyy')}
                     </TableCell>
                     <TableCell className="font-medium">
-                      ₦{payment.amount.toLocaleString()}
+                      ₱{payment.amount.toLocaleString()}
                     </TableCell>
                     <TableCell className="capitalize">
                       {payment.payment_method || 'N/A'}

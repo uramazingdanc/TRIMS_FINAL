@@ -75,10 +75,10 @@ export default function MaintenancePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!tenantId) {
+    if (!user?.id) {
       toast({
         title: 'Error',
-        description: 'Unable to submit request. Please try again.',
+        description: 'You must be logged in to submit a request.',
         variant: 'destructive'
       });
       return;
