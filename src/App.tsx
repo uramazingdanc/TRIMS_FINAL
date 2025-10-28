@@ -18,6 +18,9 @@ import RoomManager from "./pages/admin/RoomManager";
 import MaintenanceRequestsPage from "./pages/admin/Maintenance";
 import TenantDashboard from "./pages/tenant/Dashboard";
 import ApplyRoom from "./pages/tenant/ApplyRoom";
+import TenantPayments from "./pages/tenant/Payments";
+import TenantMaintenance from "./pages/tenant/Maintenance";
+import TenantProfile from "./pages/tenant/Profile";
 import NotFound from "./pages/NotFound";
 import Rules from "./pages/Rules";
 
@@ -79,9 +82,9 @@ const App = () => {
                   <Route index element={<Navigate to="/tenant/dashboard" />} />
                   <Route path="dashboard" element={<TenantDashboard />} />
                   <Route path="apply-room" element={<ApplyRoom />} />
-                  <Route path="payments" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Payments</h1><p>Your payment information will appear here. No pending payments at the moment.</p></div>} />
-                  <Route path="maintenance" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Maintenance</h1><p>Submit and track maintenance requests here.</p></div>} />
-                  <Route path="profile" element={<div className="animate-fade-in"><h1 className="text-2xl font-bold mb-6">Profile</h1><p>Your profile information and settings.</p></div>} />
+                  <Route path="payments" element={<TenantPayments />} />
+                  <Route path="maintenance" element={<TenantMaintenance />} />
+                  <Route path="profile" element={<TenantProfile />} />
                 </Route>
               </Route>
               
