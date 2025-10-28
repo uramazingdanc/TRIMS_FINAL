@@ -72,6 +72,18 @@ export const register = async (data: RegisterData): Promise<User> => {
     
     // Profile is now created automatically by the database trigger
     
+    // Create user role entry in user_roles table
+    const { error: roleError } = await supabase
+      .from('user_roles')
+      .insert({
+        user_id: authData.user.id,
+        role: userRole as any,
+      });
+    
+    if (roleError) {
+      console.error('Role creation failed:', roleError);
+    }
+    
     // If user is registering as tenant, create tenant record
     if (userRole === 'tenant') {
       const { error: tenantError } = await supabase

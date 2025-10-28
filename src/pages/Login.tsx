@@ -34,8 +34,8 @@ const Login = () => {
       setIsSubmitting(true);
       const user = await login({ email, password });
       
-      // Redirect to appropriate dashboard based on selected role
-      switch (role) {
+      // Redirect to appropriate dashboard based on user's actual role from database
+      switch (user.role) {
         case 'admin':
           navigate('/admin/dashboard');
           break;
