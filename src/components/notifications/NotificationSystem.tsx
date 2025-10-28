@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Bell, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthOptional } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
@@ -28,7 +28,12 @@ export function NotificationSystem() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const { toast } = useToast();
-  const { user, isAuthenticated } = useAuth();
+  const auth = useAuthOptional();
+  
+  // Safety check - return null if auth context not available
+  if (!auth) return null;
+  
+  const { user, isAuthenticated } = auth;
 
   useEffect(() => {
     if (isAuthenticated && user) {

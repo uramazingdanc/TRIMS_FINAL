@@ -269,3 +269,8 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// Optional hook that returns null instead of throwing when not in provider
+export const useAuthOptional = () => {
+  return useContext(AuthContext);
+};
