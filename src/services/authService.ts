@@ -14,15 +14,39 @@ export const login = async ({ email, password }: LoginCredentials): Promise<User
     if (error) throw new Error(error.message);
     if (!data || !data.user) throw new Error('Login failed: No user data returned');
     
-    // Get the user profile from the profiles table
-    const { data: profile, error: profileError } = await supabase
+    // Get or create the user profile in the profiles table
+    let { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', data.user.id)
       .maybeSingle();
-      
+
     if (profileError) throw new Error(profileError.message);
-    if (!profile) throw new Error('User profile not found');
+
+    // Auto-create a minimal profile if not found (first login after signup or dashboard-created user)
+    if (!profile) {
+      const displayName = (data.user.user_metadata?.name as string) || (data.user.email?.split('@')[0] ?? 'User');
+      const { error: createProfileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          email: data.user.email!,
+          name: displayName,
+        });
+      if (createProfileError) {
+        // If creation fails due to RLS/session, surface a friendly message
+        throw new Error(createProfileError.message || 'Unable to create user profile');
+      }
+
+      // Re-fetch profile to proceed
+      const { data: createdProfile, error: refetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .maybeSingle();
+      if (refetchError) throw new Error(refetchError.message);
+      profile = createdProfile as any;
+    }
     
     // Get user role using secure RPC function
     const { data: roleData, error: roleError } = await (supabase as any)
@@ -71,7 +95,24 @@ export const register = async (data: RegisterData): Promise<User> => {
     if (error) throw new Error(error.message);
     if (!authData || !authData.user) throw new Error('Registration failed: No user data returned');
     
-    // Profile is now created automatically by the database trigger
+    // Create or update profile row for this user (no trigger in DB)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user?.id === authData.user.id) {
+        const { error: profileUpsertError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            email: data.email,
+            name: data.name,
+          }, { onConflict: 'id' });
+        if (profileUpsertError) {
+          console.error('Profile upsert failed:', profileUpsertError);
+        }
+      }
+    } catch (e) {
+      console.error('Profile creation attempt failed:', e);
+    }
     
     // Create user role entry in user_roles table
     const { error: roleError } = await supabase
