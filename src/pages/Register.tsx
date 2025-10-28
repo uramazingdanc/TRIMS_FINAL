@@ -142,7 +142,7 @@ const Register = () => {
         });
       }
       
-      // Redirect to appropriate dashboard based on user role
+      // Redirect to appropriate dashboard based on user's actual role from database
       const dashboardPaths: Record<UserRole, string> = {
         admin: '/admin/dashboard',
         tenant: '/tenant/dashboard',
@@ -150,7 +150,7 @@ const Register = () => {
         staff: '/staff/dashboard',
         school: '/school/dashboard',
       };
-      navigate(dashboardPaths[role]);
+      navigate(dashboardPaths[user.role] || dashboardPaths[role]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to register');
     } finally {
