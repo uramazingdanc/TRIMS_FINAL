@@ -173,6 +173,35 @@ export type Database = {
           },
         ]
       }
+      parent_child_relationships: {
+        Row: {
+          created_at: string
+          id: string
+          parent_user_id: string
+          student_tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parent_user_id: string
+          student_tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parent_user_id?: string
+          student_tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_child_relationships_student_tenant_id_fkey"
+            columns: ["student_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number

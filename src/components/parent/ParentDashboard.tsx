@@ -24,11 +24,27 @@ export default function ParentDashboard() {
     try {
       setLoading(true);
 
-      // Fetch student/tenant information linked to this parent
+      // Fetch student (tenant) information through parent-child relationship
+      const { data: relationshipData, error: relationshipError } = await supabase
+        .from('parent_child_relationships')
+        .select('student_tenant_id')
+        .eq('parent_user_id', user?.id)
+        .maybeSingle();
+
+      if (relationshipError) {
+        console.error('Error fetching parent relationship:', relationshipError);
+      }
+
+      if (!relationshipData) {
+        setLoading(false);
+        return;
+      }
+
+      // Fetch the tenant data for the student
       const { data: tenantData, error: tenantError } = await supabase
         .from('tenants')
         .select('*, rooms(*)')
-        .eq('user_id', user?.id)
+        .eq('id', relationshipData.student_tenant_id)
         .maybeSingle();
 
       if (tenantError) {

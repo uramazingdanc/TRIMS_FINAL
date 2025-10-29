@@ -39,6 +39,7 @@ const tenantSchema = z.object({
   emergency_contact: z.string().optional(),
   lease_start: z.string().min(1, 'Lease start date is required'),
   lease_end: z.string().min(1, 'Lease end date is required'),
+  parent_email: z.string().email('Invalid parent email').optional().or(z.literal('')),
 });
 
 type TenantFormValues = z.infer<typeof tenantSchema>;
@@ -63,6 +64,7 @@ export function AddTenantDialog({ open, onOpenChange, onSuccess }: AddTenantDial
       emergency_contact: '',
       lease_start: '',
       lease_end: '',
+      parent_email: '',
     },
   });
 
@@ -91,7 +93,7 @@ export function AddTenantDialog({ open, onOpenChange, onSuccess }: AddTenantDial
     try {
       setLoading(true);
 
-      const { error } = await supabase.from('tenants').insert([
+      const { data: newTenant, error } = await supabase.from('tenants').insert([
         {
           name: values.name,
           email: values.email,
@@ -103,7 +105,7 @@ export function AddTenantDialog({ open, onOpenChange, onSuccess }: AddTenantDial
           payment_status: 'pending',
           balance: 0,
         },
-      ]);
+      ]).select().single();
 
       if (error) throw error;
 
@@ -113,7 +115,37 @@ export function AddTenantDialog({ open, onOpenChange, onSuccess }: AddTenantDial
         .update({ status: 'occupied' })
         .eq('id', values.room_id);
 
-      toast.success('Tenant added successfully!');
+      // If parent email is provided, link parent to student
+      if (values.parent_email && newTenant) {
+        // Find parent by email in profiles
+        const { data: parentProfile, error: parentError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', values.parent_email)
+          .single();
+
+        if (!parentError && parentProfile) {
+          // Create parent-child relationship
+          const { error: relationshipError } = await supabase
+            .from('parent_child_relationships')
+            .insert({
+              parent_user_id: parentProfile.id,
+              student_tenant_id: newTenant.id,
+            });
+
+          if (relationshipError) {
+            console.error('Error creating parent relationship:', relationshipError);
+            toast.error('Tenant added but failed to link parent');
+          } else {
+            toast.success('Tenant added and linked to parent successfully!');
+          }
+        } else {
+          toast.success('Tenant added but parent email not found');
+        }
+      } else {
+        toast.success('Tenant added successfully!');
+      }
+
       form.reset();
       onOpenChange(false);
       onSuccess();
@@ -240,6 +272,20 @@ export function AddTenantDialog({ open, onOpenChange, onSuccess }: AddTenantDial
                     <FormLabel>Lease End Date</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="parent_email"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Parent Email (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="parent@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
