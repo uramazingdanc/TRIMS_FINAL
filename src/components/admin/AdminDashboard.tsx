@@ -49,6 +49,7 @@ import {
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { TenantsTable, RoomsTable, PaymentsTable, MaintenanceRequestsTable } from '@/types/supabase';
+import { AddTenantDialog } from './AddTenantDialog';
 
 interface DashboardStats {
   totalTenants: number;
@@ -92,6 +93,7 @@ const AdminDashboard = () => {
   
   const [loading, setLoading] = useState(true);
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
+  const [addTenantOpen, setAddTenantOpen] = useState(false);
   const [todos, setTodos] = useState<ToDoItem[]>([
     { id: '1', task: 'Approve new lease (Tenant: Anna M.)', priority: 'high', completed: false, dueDate: '2025-01-30' },
     { id: '2', task: 'Follow up maintenance (Unit 3C)', priority: 'medium', completed: false },
@@ -241,12 +243,19 @@ const AdminDashboard = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search anything..." className="pl-10 w-64" />
           </div>
-          <Button size="sm" className="animate-bounce-gentle">
+          <Button size="sm" className="animate-bounce-gentle" onClick={() => setAddTenantOpen(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
             Add Tenant
           </Button>
         </div>
       </div>
+
+      {/* Add Tenant Dialog */}
+      <AddTenantDialog 
+        open={addTenantOpen} 
+        onOpenChange={setAddTenantOpen}
+        onSuccess={fetchDashboardData}
+      />
 
       {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
