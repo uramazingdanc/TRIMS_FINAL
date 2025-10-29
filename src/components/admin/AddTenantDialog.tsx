@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -67,11 +67,11 @@ export function AddTenantDialog({ open, onOpenChange, onSuccess }: AddTenantDial
   });
 
   // Fetch available rooms when dialog opens
-  useState(() => {
+  useEffect(() => {
     if (open) {
       fetchAvailableRooms();
     }
-  });
+  }, [open]);
 
   const fetchAvailableRooms = async () => {
     const { data, error } = await supabase
